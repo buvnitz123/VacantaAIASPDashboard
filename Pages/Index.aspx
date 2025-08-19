@@ -1,4 +1,6 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Index.aspx.cs" Inherits="WebAdminDashboard.Index" %>
+<%@ Register Src="~/Pages/Shared/Navbar.ascx" TagPrefix="uc" TagName="Navbar" %>
+<%@ Register Src="~/Pages/Shared/Sidebar.ascx" TagPrefix="uc" TagName="Sidebar" %>
 
 <!DOCTYPE html>
 
@@ -6,28 +8,28 @@
 <head runat="server">
     <title>Dasboard</title>
     <link href="/Content/styles.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="/Scripts/app.js"></script>
 </head>
 <body>
 
-    <div class="topnav">
-  <a class="active" href="#home">Home</a>
-  <a href="#news">News</a>
-  <a href="#contact">Contact</a>
-  <a href="#about">About</a>
-</div>
-<div class="sidebar">
-  <a class="active" href="#home">Home</a>
-  <a href="#news">News</a>
-  <a href="#contact">Contact</a>
-  <a href="#about">About</a>
-</div>
+    <uc:Navbar runat="server" ID="TopNavbar" />
 
-<div class="content">
-  <h2>Responsive Sidebar Example</h2>
-  <p>This example use media queries to transform the sidebar to a top navigation bar when the screen size is 700px or less.</p>
-  <p>We have also added a media query for screens that are 400px or less, which will vertically stack and center the navigation links.</p>
-  <h3>Resize the browser window to see the effect.</h3>
-</div>
+    <uc:Sidebar runat="server" ID="LeftSidebar" />
+
+    <div class="content expanded-when-collapsed">
+      <div class="section home active">
+        <h2>Bine ai venit!</h2>
+        <p>Acesta este dashboard-ul aplicației. Folosește meniul din stânga pentru a naviga.</p>
+      </div>
+      <div class="section utilizatori">
+        <h2>Utilizatori</h2>
+        <p>Gestionare utilizatori: listă, adăugare, editare.</p>
+      </div>
+      <div class="section categorii">
+        <h2>Categorii vacante</h2>
+        <p>Administrare categorii pentru vacanțe.</p>
+      </div>
+    </div>
 </body>
 </html>
