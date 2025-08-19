@@ -1,6 +1,8 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Index.aspx.cs" Inherits="WebAdminDashboard.Index" %>
 <%@ Register Src="~/Pages/Shared/Navbar.ascx" TagPrefix="uc" TagName="Navbar" %>
 <%@ Register Src="~/Pages/Shared/Sidebar.ascx" TagPrefix="uc" TagName="Sidebar" %>
+<%@ Register Src="~/Pages/Utilizatori.ascx" TagPrefix="pg" TagName="Utilizatori" %>
+<%@ Register Src="~/Pages/CategoriiVacanta.ascx" TagPrefix="pg" TagName="CategoriiVacanta" %>
 
 <!DOCTYPE html>
 
@@ -20,15 +22,13 @@
     <div class="content expanded-when-collapsed">
       <div class="section home active">
         <h2>Bine ai venit!</h2>
-        <p>Acesta este dashboard-ul aplicației. Folosește meniul din stânga pentru a naviga.</p>
+        <p>Acesta este dashboard-ul aplicatiei. Foloseste meniul din stanga pentru a naviga.</p>
       </div>
       <div class="section utilizatori">
-        <h2>Utilizatori</h2>
-        <p>Gestionare utilizatori: listă, adăugare, editare.</p>
+        <pg:Utilizatori runat="server" ID="PgUtilizatori" />
       </div>
       <div class="section categorii">
-        <h2>Categorii vacante</h2>
-        <p>Administrare categorii pentru vacanțe.</p>
+        <pg:CategoriiVacanta runat="server" ID="PgCategoriiVacanta" />
       </div>
     </div>
 </body>

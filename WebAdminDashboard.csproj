@@ -75,9 +75,13 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\styles.css" />
+    <Content Include="Pages\CategoriiVacanta.aspx" />
     <Content Include="Pages\Shared\Navbar.ascx" />
     <Content Include="Pages\Shared\Sidebar.ascx" />
+    <Content Include="Pages\Utilizatori.ascx" />
+    <Content Include="Pages\CategoriiVacanta.ascx" />
     <Content Include="Pages\Index.aspx" />
+    <Content Include="Pages\Utilizatori.aspx" />
     <Content Include="Scripts\app.js" />
     <Content Include="Web.config" />
   </ItemGroup>
@@ -85,12 +89,26 @@
     <Compile Include="Classes\Database\Database.cs" />
     <Compile Include="Classes\Database\AppContext.cs" />
     <Compile Include="Classes\DTO\Utilizator.cs" />
+    <Compile Include="Pages\CategoriiVacanta.aspx.cs">
+      <DependentUpon>CategoriiVacanta.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Pages\CategoriiVacanta.aspx.designer.cs">
+      <DependentUpon>CategoriiVacanta.aspx</DependentUpon>
+    </Compile>
     <Compile Include="Pages\Index.aspx.cs">
       <DependentUpon>Index.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
     <Compile Include="Pages\Index.aspx.designer.cs">
       <DependentUpon>Index.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Utilizatori.aspx.cs">
+      <DependentUpon>Utilizatori.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Pages\Utilizatori.aspx.designer.cs">
+      <DependentUpon>Utilizatori.aspx</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
