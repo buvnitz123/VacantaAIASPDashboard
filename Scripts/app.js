@@ -1,12 +1,4 @@
-﻿function openNav() {
-    document.getElementById("mySidenav").style.width = "250px";
-}
-
-function closeNav() {
-    document.getElementById("mySidenav").style.width = "0";
-}
-
-// Sidebar toggle logic for Home/About
+﻿// Sidebar toggle logic for Home/About
 (function () {
     var allowedSections = ['home', 'utilizatori', 'categorii'];
 
@@ -22,6 +14,11 @@ function closeNav() {
         var target = document.querySelector('.' + sectionName);
         if (target) {
             target.classList.add('active');
+            if (sectionName === 'utilizatori') {
+                initUtilizatoriTable();
+            } else if (sectionName === 'categorii') {
+                initCategoriiTable();
+            }
         }
 
         var links = document.querySelectorAll('.sidebar a');
@@ -98,6 +95,58 @@ function closeNav() {
                 showSection(hash);
             }
         });
+    }
+
+    // DataTables initializers (idempotent)
+    var utilizatoriInited = false;
+    function initUtilizatoriTable() {
+        if (utilizatoriInited || typeof $ === 'undefined' || !$('#tblUtilizatori').length) return;
+        $('#tblUtilizatori').DataTable({
+            ajax: {
+                url: 'Index.aspx/GetUtilizatoriData',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                dataSrc: function (json) {
+                    var data = [];
+                    try { data = JSON.parse(json.d); } catch (e) { }
+                    return data;
+                }
+            },
+            columns: [
+                { data: 'Id_Utilizator' },
+                { data: 'Nume' },
+                { data: 'Prenume' },
+                { data: 'Email' },
+                { data: 'Telefon' },
+                { data: 'EsteActiv' }
+            ]
+        });
+        utilizatoriInited = true;
+    }
+
+    var categoriiInited = false;
+    function initCategoriiTable() {
+        if (categoriiInited || typeof $ === 'undefined' || !$('#tblCategorii').length) return;
+        $('#tblCategorii').DataTable({
+            ajax: {
+                url: 'Index.aspx/GetCategoriiVacantaData',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                dataSrc: function (json) {
+                    var data = [];
+                    try { data = JSON.parse(json.d); } catch (e) { }
+                    return data;
+                }
+            },
+            columns: [
+                { data: 'Id_CategorieVacanta' },
+                { data: 'Denumire' },
+                { data: 'ImagineUrl' }
+            ]
+        });
+        categoriiInited = true;
     }
 
     if (document.readyState === 'loading') {

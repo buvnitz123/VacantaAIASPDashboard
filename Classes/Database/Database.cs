@@ -35,5 +35,13 @@ namespace WebAdminDashboard.Classes.Database
                 return context.Utilizatori.ToList();
             }
         }
+
+        public List<CategorieVacanta> GetCategoriiVacanta()
+        {
+            using (var context = new AppContext())
+            {
+                return context.CategoriiVacanta.ToList();
+            }
+        }
     }
 }

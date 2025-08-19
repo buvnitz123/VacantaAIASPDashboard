@@ -12,5 +12,6 @@ namespace WebAdminDashboard.Classes.Database
         public AppContext() : base("name=DbContext") { }
 
         public DbSet<Utilizator> Utilizatori { get; set; }
+        public DbSet<CategorieVacanta> CategoriiVacanta { get; set; }
     }
 }
