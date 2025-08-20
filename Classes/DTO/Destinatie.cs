@@ -44,12 +44,10 @@ namespace WebAdminDashboard.Classes.DTO
 
         [Required]
         [Column("PretAdult")]
-        [Column(TypeName = "decimal(15,2)")]
         public decimal PretAdult { get; set; }
 
         [Required]
         [Column("PretMinor")]
-        [Column(TypeName = "decimal(15,2)")]
         public decimal PretMinor { get; set; }
     }
 }

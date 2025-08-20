@@ -19,11 +19,9 @@ namespace WebAdminDashboard.Classes.DTO
         public DateTime Data_Inregistrare { get; set; }
 
         [Column("Buget_Minim")]
-        [Column(TypeName = "decimal(15,2)")]
         public decimal? Buget_Minim { get; set; }
 
         [Column("Buget_Maxim")]
-        [Column(TypeName = "decimal(15,2)")]
         public decimal? Buget_Maxim { get; set; }
 
         [Required]

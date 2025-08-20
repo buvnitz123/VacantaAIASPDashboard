@@ -28,7 +28,6 @@ namespace WebAdminDashboard.Classes.DTO
 
         [Required]
         [Column("Buget_Estimat")]
-        [Column(TypeName = "decimal(15,2)")]
         public decimal Buget_Estimat { get; set; }
 
         [Required]

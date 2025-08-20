@@ -30,5 +30,33 @@ namespace WebAdminDashboard
             var data = Database.Instance.GetCategoriiVacanta();
             return new JavaScriptSerializer().Serialize(data);
         }
+
+        [WebMethod]
+        public static string GetDestinatiiData()
+        {
+            var data = Database.Instance.GetDestinatiiVacanta();
+            return new JavaScriptSerializer().Serialize(data);
+        }
+
+        [WebMethod]
+        public static string GetFacilitatiData()
+        {
+            var data = Database.Instance.GetFacilitati();
+            return new JavaScriptSerializer().Serialize(data);
+        }
+
+        [WebMethod]
+        public static string GetPuncteInteresData()
+        {
+            var data = Database.Instance.GetPuncteInteres();
+            return new JavaScriptSerializer().Serialize(data);
+        }
+
+        [WebMethod]
+        public static string GetSugestiiData()
+        {
+            var data = Database.Instance.GetSugestii();
+            return new JavaScriptSerializer().Serialize(data);
+        }
     }
 }

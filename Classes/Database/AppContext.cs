@@ -13,5 +13,9 @@ namespace WebAdminDashboard.Classes.Database
 
         public DbSet<Utilizator> Utilizatori { get; set; }
         public DbSet<CategorieVacanta> CategoriiVacanta { get; set; }
+        public DbSet<Destinatie> Destinatii { get; set; }
+        public DbSet<Facilitate> Facilitati { get; set; }
+        public DbSet<PunctDeInteres> PuncteDeInteres { get; set; }
+        public DbSet<Sugestie> Sugestii { get; set; }
     }
 }

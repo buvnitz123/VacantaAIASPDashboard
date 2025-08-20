@@ -43,5 +43,37 @@ namespace WebAdminDashboard.Classes.Database
                 return context.CategoriiVacanta.ToList();
             }
         }
+
+        public List<Destinatie> GetDestinatiiVacanta()
+        {
+            using (var context = new AppContext())
+            {
+                return context.Destinatii.ToList();
+            }
+        }
+
+        public List<Facilitate> GetFacilitati()
+        {
+            using (var context = new AppContext())
+            {
+                return context.Facilitati.ToList();
+            }
+        }
+
+        public List<PunctDeInteres> GetPuncteInteres()
+        {
+            using (var context = new AppContext())
+            {
+                return context.PuncteDeInteres.ToList();
+            }
+        }
+
+        public List<Sugestie> GetSugestii()
+        {
+            using (var context = new AppContext())
+            {
+                return context.Sugestii.ToList();
+            }
+        }
     }
 }

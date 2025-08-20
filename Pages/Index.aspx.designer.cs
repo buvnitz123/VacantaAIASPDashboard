@@ -13,5 +13,77 @@ namespace WebAdminDashboard
 
     public partial class Index
     {
+
+        /// <summary>
+        /// TopNavbar control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.UserControl TopNavbar;
+
+        /// <summary>
+        /// LeftSidebar control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.UserControl LeftSidebar;
+
+        /// <summary>
+        /// PgUtilizatori control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.UserControl PgUtilizatori;
+
+        /// <summary>
+        /// PgCategoriiVacanta control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.UserControl PgCategoriiVacanta;
+
+        /// <summary>
+        /// PgDestinatii control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.UserControl PgDestinatii;
+
+        /// <summary>
+        /// PgFacilitati control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.UserControl PgFacilitati;
+
+        /// <summary>
+        /// PgPuncteDeInteres control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.UserControl PgPuncteDeInteres;
+
+        /// <summary>
+        /// PgSugestii control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.UserControl PgSugestii;
     }
 }

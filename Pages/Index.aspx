@@ -3,6 +3,11 @@
 <%@ Register Src="~/Pages/Shared/Sidebar.ascx" TagPrefix="uc" TagName="Sidebar" %>
 <%@ Register Src="~/Pages/Utilizatori.ascx" TagPrefix="pg" TagName="Utilizatori" %>
 <%@ Register Src="~/Pages/CategoriiVacanta.ascx" TagPrefix="pg" TagName="CategoriiVacanta" %>
+<%@ Register Src="~/Pages/Destinatie.ascx" TagPrefix="pg" TagName="Destinatii" %>
+<%@ Register Src="~/Pages/Facilitate.ascx" TagPrefix="pg" TagName="Facilitati" %>
+<%@ Register Src="~/Pages/PunctDeInteres.ascx" TagPrefix="pg" TagName="PuncteDeInteres" %>
+<%@ Register Src="~/Pages/Sugestie.ascx" TagPrefix="pg" TagName="Sugestii" %>
+
 
 <!DOCTYPE html>
 
@@ -14,7 +19,7 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <script src="/Scripts/app.js"></script>
+    <script src="/Scripts/app.js?v=1.0"></script>
 </head>
 <body>
 
@@ -32,6 +37,18 @@
       </div>
       <div class="section categorii">
         <pg:CategoriiVacanta runat="server" ID="PgCategoriiVacanta" />
+      </div>
+      <div class="section destinatii">
+        <pg:Destinatii runat="server" ID="PgDestinatii" />
+      </div>
+      <div class="section facilitati">
+        <pg:Facilitati runat="server" ID="PgFacilitati" />
+      </div>
+      <div class="section puncte">
+        <pg:PuncteDeInteres runat="server" ID="PgPuncteDeInteres" />
+      </div>
+      <div class="section sugestii">
+        <pg:Sugestii runat="server" ID="PgSugestii" />
       </div>
     </div>
 </body>

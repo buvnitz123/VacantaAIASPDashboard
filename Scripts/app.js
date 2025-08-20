@@ -1,6 +1,6 @@
-﻿// Sidebar toggle logic for Home/About
+﻿// Sidebar toggle logic
 (function () {
-    var allowedSections = ['home', 'utilizatori', 'categorii'];
+    var allowedSections = ['home', 'utilizatori', 'categorii', 'destinatii', 'facilitati', 'puncte', 'sugestii'];
 
     function isAllowedSection(sectionName) {
         return allowedSections.indexOf(sectionName) !== -1;
@@ -14,10 +14,19 @@
         var target = document.querySelector('.' + sectionName);
         if (target) {
             target.classList.add('active');
+
             if (sectionName === 'utilizatori') {
                 initUtilizatoriTable();
             } else if (sectionName === 'categorii') {
                 initCategoriiTable();
+            } else if (sectionName === 'destinatii') {
+                initDestinatiiTable();
+            } else if (sectionName === 'facilitati') {
+                initFacilitatiTable();
+            } else if (sectionName === 'puncte') {
+                initPuncteTable();
+            } else if (sectionName === 'sugestii') {
+                initSugestiiTable();
             }
         }
 
@@ -71,7 +80,6 @@
         if (toggle && sidebar && content) {
             toggle.addEventListener('click', function (e) {
                 e.preventDefault();
-                // Add fade transition by toggling a fading class briefly
                 sidebar.classList.add('fading');
                 sidebar.classList.toggle('collapsed');
                 content.classList.toggle('expanded-when-collapsed');
@@ -97,7 +105,7 @@
         });
     }
 
-    // DataTables initializers (idempotent)
+    // ---- DataTables initializers ----
     var utilizatoriInited = false;
     function initUtilizatoriTable() {
         if (utilizatoriInited || typeof $ === 'undefined' || !$('#tblUtilizatori').length) return;
@@ -147,6 +155,117 @@
             ]
         });
         categoriiInited = true;
+    }
+
+    var destinatiiInited = false;
+    function initDestinatiiTable() {
+        if (destinatiiInited || typeof $ === 'undefined' || !$('#tblDestinatii').length) return;
+        $('#tblDestinatii').DataTable({
+            ajax: {
+                url: 'Index.aspx/GetDestinatiiData',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                dataSrc: function (json) {
+                    var data = [];
+                    try { data = JSON.parse(json.d); } catch (e) { }
+                    return data;
+                }
+            },
+            columns: [
+                { data: 'Id_Destinatie' },
+                { data: 'Denumire' },
+                { data: 'Tara' },
+                { data: 'Oras' },
+                { data: 'Regiune' },
+                { data: 'Descriere' },
+                { data: 'Data_Inregistrare' },
+                { data: 'PretAdult' },
+                { data: 'PretMinor' }
+            ]
+        });
+        destinatiiInited = true;
+    }
+
+    var facilitatiInited = false;
+    function initFacilitatiTable() {
+        if (facilitatiInited || typeof $ === 'undefined' || !$('#tblFacilitati').length) return;
+        $('#tblFacilitati').DataTable({
+            ajax: {
+                url: 'Index.aspx/GetFacilitatiData',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                dataSrc: function (json) {
+                    var data = [];
+                    try { data = JSON.parse(json.d); } catch (e) { }
+                    return data;
+                }
+            },
+            columns: [
+                { data: 'Id_Facilitate' },
+                { data: 'Denumire' },
+                { data: 'Descriere' }
+            ]
+        });
+        facilitatiInited = true;
+    }
+
+    var puncteInited = false;
+    function initPuncteTable() {
+        if (puncteInited || typeof $ === 'undefined' || !$('#tblPuncteDeInteres').length) return;
+        $('#tblPuncteDeInteres').DataTable({
+            ajax: {
+                url: 'Index.aspx/GetPuncteInteresData',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                dataSrc: function (json) {
+                    var data = [];
+                    try { data = JSON.parse(json.d); } catch (e) { }
+                    return data;
+                }
+            },
+            columns: [
+                { data: 'Id_PunctDeInteres' },
+                { data: 'Denumire' },
+                { data: 'Descriere' },
+                { data: 'Tip' },
+                { data: 'Id_Destinatie' }
+            ]
+        });
+        puncteInited = true;
+    }
+
+    var sugestiiInited = false;
+    function initSugestiiTable() {
+        if (sugestiiInited || typeof $ === 'undefined' || !$('#tblSugestii').length) return;
+        $('#tblSugestii').DataTable({
+            ajax: {
+                url: 'Index.aspx/GetSugestiiData',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                dataSrc: function (json) {
+                    var data = [];
+                    try { data = JSON.parse(json.d); } catch (e) { }
+                    return data;
+                }
+            },
+            columns: [
+                { data: 'Id_Sugestie' },
+                { data: 'Data_Inregistrare' },
+                { data: 'EsteGenerataDeAI' },
+                { data: 'Titlu' },
+                { data: 'Buget_Estimat' },
+                { data: 'Descriere' },
+                { data: 'EstePublic' },
+                { data: 'CodPartajare' },
+                { data: 'Id_Destinatie' },
+                { data: 'Id_Utilizator' }
+            ]
+        });
+        sugestiiInited = true;
     }
 
     if (document.readyState === 'loading') {

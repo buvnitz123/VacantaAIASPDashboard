@@ -77,6 +77,10 @@
     <Content Include="Content\styles.css" />
     <Content Include="Pages\Shared\Navbar.ascx" />
     <Content Include="Pages\Shared\Sidebar.ascx" />
+    <Content Include="Pages\PunctDeInteres.ascx" />
+    <Content Include="Pages\Facilitate.ascx" />
+    <Content Include="Pages\Sugestie.ascx" />
+    <Content Include="Pages\Destinatie.ascx" />
     <Content Include="Pages\Utilizatori.ascx" />
     <Content Include="Pages\CategoriiVacanta.ascx" />
     <Content Include="Pages\Index.aspx" />
@@ -87,8 +91,21 @@
     <Compile Include="Classes\Database\Database.cs" />
     <Compile Include="Classes\Database\AppContext.cs" />
     <Compile Include="Classes\DTO\CategorieVacanta.cs" />
+    <Compile Include="Classes\DTO\CategorieVacanta_Destinatie.cs" />
+    <Compile Include="Classes\DTO\ConversatieAI.cs" />
+    <Compile Include="Classes\DTO\Destinatie.cs" />
+    <Compile Include="Classes\DTO\DestinatieFacilitate.cs" />
+    <Compile Include="Classes\DTO\Facilitate.cs" />
+    <Compile Include="Classes\DTO\Favorite.cs" />
+    <Compile Include="Classes\DTO\ImaginiDestinatie.cs" />
+    <Compile Include="Classes\DTO\ImaginiPunctDeInteres.cs" />
+    <Compile Include="Classes\DTO\LogActivitate.cs" />
+    <Compile Include="Classes\DTO\MesajAI.cs" />
+    <Compile Include="Classes\DTO\PreferinteUtilizator.cs" />
+    <Compile Include="Classes\DTO\PunctDeInteres.cs" />
+    <Compile Include="Classes\DTO\Recenzie.cs" />
+    <Compile Include="Classes\DTO\Sugestie.cs" />
     <Compile Include="Classes\DTO\Utilizator.cs" />
-    
     <Compile Include="Pages\Index.aspx.cs">
       <DependentUpon>Index.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -96,7 +113,6 @@
     <Compile Include="Pages\Index.aspx.designer.cs">
       <DependentUpon>Index.aspx</DependentUpon>
     </Compile>
-    
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />
