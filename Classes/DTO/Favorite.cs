@@ -11,16 +11,16 @@ namespace WebAdminDashboard.Classes.DTO
     public class Favorite
     {
         [Key]
-        [Column("Id_Utilizator")]
+        [Column("Id_Utilizator", Order = 1)]
         public int Id_Utilizator { get; set; }
 
         [Key]
         [StringLength(50)]
-        [Column("TipElement")]
+        [Column("TipElement", Order = 2)]
         public string TipElement { get; set; }
 
         [Key]
-        [Column("Id_Element")]
+        [Column("Id_Element", Order = 3)]
         public int Id_Element { get; set; }
 
         [ForeignKey("Id_Utilizator")]

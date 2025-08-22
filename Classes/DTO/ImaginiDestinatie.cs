@@ -11,11 +11,11 @@ namespace WebAdminDashboard.Classes.DTO
     public class ImaginiDestinatie
     {
         [Key]
-        [Column("Id_Destinatie")]
+        [Column("Id_Destinatie", Order = 1)]
         public int Id_Destinatie { get; set; }
 
         [Key]
-        [Column("Id_ImaginiDestinatie")]
+        [Column("Id_ImaginiDestinatie", Order = 2)]
         public int Id_ImaginiDestinatie { get; set; }
 
         [StringLength(200)]

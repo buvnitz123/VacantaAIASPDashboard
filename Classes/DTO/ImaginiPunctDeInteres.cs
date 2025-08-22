@@ -11,11 +11,11 @@ namespace WebAdminDashboard.Classes.DTO
     public class ImaginiPunctDeInteres
     {
         [Key]
-        [Column("Id_PunctDeInteres")]
+        [Column("Id_PunctDeInteres", Order = 1)]
         public int Id_PunctDeInteres { get; set; }
 
         [Key]
-        [Column("Id_ImaginiPunctDeInteres")]
+        [Column("Id_ImaginiPunctDeInteres", Order = 2)]
         public int Id_ImaginiPunctDeInteres { get; set; }
 
         [StringLength(200)]

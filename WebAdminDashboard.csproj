@@ -90,9 +90,19 @@
   <ItemGroup>
     <Compile Include="Classes\Database\AppContext.cs" />
     <Compile Include="Classes\Database\Repositories\CategorieVacantaRepository.cs" />
+    <Compile Include="Classes\Database\Repositories\CategorieVacanta_DestinatieRepository.cs" />
+    <Compile Include="Classes\Database\Repositories\ConversatieAIRepository.cs" />
+    <Compile Include="Classes\Database\Repositories\DestinatieFacilitateRepository.cs" />
     <Compile Include="Classes\Database\Repositories\DestinatieRepository.cs" />
     <Compile Include="Classes\Database\Repositories\FacilitateRepository.cs" />
+    <Compile Include="Classes\Database\Repositories\FavoriteRepository.cs" />
+    <Compile Include="Classes\Database\Repositories\ImaginiDestinatieRepository.cs" />
+    <Compile Include="Classes\Database\Repositories\ImaginiPunctDeInteresRepository.cs" />
+    <Compile Include="Classes\Database\Repositories\LogActivitateRepository.cs" />
+    <Compile Include="Classes\Database\Repositories\MesajAIRepository.cs" />
+    <Compile Include="Classes\Database\Repositories\PreferinteUtilizatorRepository.cs" />
     <Compile Include="Classes\Database\Repositories\PunctDeInteresRepository.cs" />
+    <Compile Include="Classes\Database\Repositories\RecenzieRepository.cs" />
     <Compile Include="Classes\Database\Repositories\SugestieRepository.cs" />
     <Compile Include="Classes\Database\Repositories\UtilizatorRepository.cs" />
     <Compile Include="Classes\DTO\CategorieVacanta.cs" />

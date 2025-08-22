@@ -11,11 +11,11 @@ namespace WebAdminDashboard.Classes.DTO
     public class CategorieVacanta_Destinatie
     {
         [Key]
-        [Column("Id_Destinatie")]
+        [Column("Id_Destinatie", Order = 1)]
         public int Id_Destinatie { get; set; }
 
         [Key]
-        [Column("Id_CategorieVacanta")]
+        [Column("Id_CategorieVacanta", Order = 2)]
         public int Id_CategorieVacanta { get; set; }
 
         [ForeignKey("Id_Destinatie")]
