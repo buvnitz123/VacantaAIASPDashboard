@@ -1,0 +1,136 @@
+﻿/* Container formular */
+#form-categorie {
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    background: #fafafa;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    font-family: Arial, sans-serif;
+}
+
+    /* Etichete */
+    #form-categorie label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    /* Input text */
+    #form-categorie input[type="text"],
+    #form-categorie input[type="file"] {
+        width: 100%;
+        padding: 8px 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-sizing: border-box;
+        transition: border-color 0.3s;
+    }
+
+        #form-categorie input[type="text"]:focus,
+        #form-categorie input[type="file"]:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+/* Mesaj validare */
+.validateTips {
+    color: #b30000;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+/* Previzualizare imagine */
+#preview-container {
+    margin-top: 10px;
+}
+
+#img-preview {
+    display: block;
+    max-width: 100%;
+    max-height: 200px;
+    margin-top: 8px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+/* Containerul de sus */
+.table-header {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 15px;
+}
+
+/* Focus accesibil */
+.btn-add:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.4);
+}
+
+.btn-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #007bff;
+    color: #fff;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: 0.2s ease;
+}
+
+    .btn-add:hover {
+        background: #0056b3;
+        transform: rotate(90deg) scale(1.1);
+    }
+
+/* Butoanele Acțiuni (edit/delete) */
+.btn-action {
+    background: none;
+    border: none;
+    padding: 4px 6px; /* mai mult spațiu orizontal pentru distanțare */
+    cursor: pointer;
+    font-size: 18px; /* puțin mai mare */
+    line-height: 1;
+    margin-right: 6px; /* distanță între ele */
+    transition: transform 0.2s;
+}
+
+    .btn-action:last-child {
+        margin-right: 0; /* ultimul nu are margin */
+    }
+
+    .btn-action:hover {
+        transform: scale(1.2);
+    }
+
+/* Buton lupa */
+.btn-icon.lupa {
+    background: none;
+    border: none;
+    font-size: 20px; /* puțin mai mare */
+    cursor: pointer;
+    padding: 4px;
+    transition: transform 0.2s;
+}
+
+    .btn-icon.lupa:hover {
+        transform: scale(1.2);
+    }
+
+
+    .btn-action.edit {
+        color: #000;
+    }
+
+    .btn-action.delete {
+        color: #fff;
+    }
+

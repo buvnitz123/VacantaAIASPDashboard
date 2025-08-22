@@ -151,11 +151,26 @@
             columns: [
                 { data: 'Id_CategorieVacanta' },
                 { data: 'Denumire' },
-                { data: 'ImagineUrl' }
+                {
+                    data: 'ImagineUrl',
+                    render: function (data, type, row) {
+                        return "<button class='btn-icon lupa' title='Vezi imagine' data-img-url='" + data + "'>🔍</button>";
+                    }
+                },
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    render: function (data, type, row) {
+                        return "<button class='btn-action edit' title='Modifică'>✏️</button>" +
+                            "<button class='btn-action delete' title='Șterge'>🗑️</button>";
+                    }
+                }
             ]
         });
         categoriiInited = true;
     }
+
 
     var destinatiiInited = false;
     function initDestinatiiTable() {
