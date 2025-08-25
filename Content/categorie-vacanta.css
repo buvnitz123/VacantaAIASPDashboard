@@ -1,12 +1,12 @@
-﻿/* Container formular */
+/* Container formular */
 #form-categorie {
     max-width: 400px;
     margin: 20px auto;
     padding: 20px;
-    border: 1px solid #ddd;
+    border: 1px solid #393e46;
     border-radius: 12px;
-    background: #fafafa;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    background: #eeeeee;
+    box-shadow: 0 2px 6px rgba(34,40,49,0.2);
     font-family: Arial, sans-serif;
 }
 
@@ -15,7 +15,7 @@
         display: block;
         margin-bottom: 6px;
         font-weight: bold;
-        color: #333;
+        color: #222831;
     }
 
     /* Input text */
@@ -24,21 +24,23 @@
         width: 100%;
         padding: 8px 10px;
         margin-bottom: 15px;
-        border: 1px solid #ccc;
+        border: 1px solid #393e46;
         border-radius: 8px;
         box-sizing: border-box;
         transition: border-color 0.3s;
+        background-color: white;
+        color: #222831;
     }
 
         #form-categorie input[type="text"]:focus,
         #form-categorie input[type="file"]:focus {
-            border-color: #007bff;
+            border-color: #0092ca;
             outline: none;
         }
 
 /* Mesaj validare */
 .validateTips {
-    color: #b30000;
+    color: #dc3545;
     font-size: 14px;
     margin-bottom: 15px;
 }
@@ -54,7 +56,25 @@
     max-height: 200px;
     margin-top: 8px;
     border-radius: 8px;
-    border: 1px solid #ddd;
+    border: 1px solid #393e46;
+}
+
+/* Modal de previzualizare */
+.preview-container {
+    padding: 20px;
+    border: 1px solid #393e46;
+    border-radius: 12px;
+    background: #eeeeee;
+    text-align: center;
+}
+
+.preview-image {
+    display: block;
+    max-width: 100%;
+    max-height: 500px;
+    margin: 0 auto;
+    border-radius: 8px;
+    border: 1px solid #393e46;
 }
 
 /* Containerul de sus */
@@ -77,8 +97,8 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: #007bff;
-    color: #fff;
+    background: #0092ca;
+    color: #eeeeee;
     font-size: 22px;
     font-weight: bold;
     cursor: pointer;
@@ -87,7 +107,7 @@
 }
 
     .btn-add:hover {
-        background: #0056b3;
+        background: #222831;
         transform: rotate(90deg) scale(1.1);
     }
 
@@ -127,10 +147,93 @@
 
 
     .btn-action.edit {
-        color: #000;
+        color: #0092ca;
     }
 
     .btn-action.delete {
-        color: #fff;
+        color: #dc3545;
     }
 
+/* Modal de ștergere */
+#dialog-delete-categorie {
+    font-family: Arial, sans-serif;
+}
+
+.delete-message {
+    font-size: 14px;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+.delete-details {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #eeeeee;
+    border-left: 4px solid #dc3545;
+    border-radius: 4px;
+}
+
+.delete-warning {
+    color: #393e46;
+    font-size: 14px;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+#delete-categorie-name {
+    font-weight: bold;
+    color: #dc3545;
+}
+
+/* Modal de editare */
+#dialog-edit-categorie {
+    font-family: Arial, sans-serif;
+}
+
+#form-edit-categorie {
+    max-width: 400px;
+    margin: 10px auto;
+    padding: 15px;
+}
+
+#form-edit-categorie label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+    color: #222831;
+}
+
+#form-edit-categorie input[type="text"],
+#form-edit-categorie input[type="file"] {
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 15px;
+    border: 1px solid #393e46;
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+    background-color: white;
+    color: #222831;
+}
+
+#form-edit-categorie input[type="text"]:focus,
+#form-edit-categorie input[type="file"]:focus {
+    border-color: #0092ca;
+    outline: none;
+}
+
+#edit-current-image,
+#edit-preview-container {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+#edit-current-img,
+#edit-img-preview {
+    display: block;
+    max-width: 100%;
+    max-height: 150px;
+    margin-top: 8px;
+    border-radius: 8px;
+    border: 1px solid #393e46;
+}

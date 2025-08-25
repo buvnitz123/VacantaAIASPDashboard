@@ -1,13 +1,15 @@
-﻿body {
+body {
     margin: 0;
     font-family: "Lato", sans-serif;
+    background-color: #eeeeee;
+    color: #222831;
 }
 
 .sidebar {
     margin: 0;
     padding: 0;
     width: 200px;
-    background-color: #f1f1f1;
+    background-color: #393e46;
     position: fixed;
     height: 100%;
     overflow: auto;
@@ -19,7 +21,7 @@
 
     .sidebar a {
         display: block;
-        color: black;
+        color: #eeeeee;
         padding: 16px;
         text-decoration: none;
     }
@@ -35,13 +37,13 @@
         }
 
         .sidebar a.active {
-            background-color: #555;
-            color: white;
+            background-color: #0092ca;
+            color: #eeeeee;
         }
 
         .sidebar a:hover:not(.active) {
-            background-color: #555;
-            color: white;
+            background-color: #222831;
+            color: #eeeeee;
         }
 
         /* Sidebar toggle link should not change color on hover; show only pointer */
@@ -110,12 +112,12 @@ div.content.expanded-when-collapsed {
 }
 .topnav {
     overflow: hidden;
-    background-color: #333;
+    background-color: #222831;
 }
 
     .topnav a {
         float: left;
-        color: #f2f2f2;
+        color: #eeeeee;
         text-align: center;
         padding: 14px 16px;
         text-decoration: none;
@@ -127,11 +129,31 @@ div.content.expanded-when-collapsed {
         }
 
         .topnav a:hover {
-            background-color: #ddd;
-            color: black;
+            background-color: #0092ca;
+            color: #eeeeee;
         }
 
         .topnav a.active {
-            background-color: #ddd;
-            color: black;
+            background-color: #0092ca;
+            color: #eeeeee;
         }
+
+/* DataTable Customization */
+.dataTables_wrapper {
+    margin-top: 15px;
+}
+
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter {
+    margin-bottom: 15px;
+}
+
+table.dataTable thead th {
+    background-color: #222831 !important;
+    color: #eeeeee !important;
+    border-bottom: 2px solid #393e46 !important;
+}
+
+table.dataTable tbody tr:hover {
+    background-color: rgba(0, 146, 202, 0.1) !important;
+}

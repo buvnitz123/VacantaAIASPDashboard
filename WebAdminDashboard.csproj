@@ -109,6 +109,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\categorie-vacanta.css" />
+    <Content Include="Content\facilitate.css" />
     <Content Include="Content\styles.css" />
     <Content Include="Pages\Shared\Navbar.ascx" />
     <Content Include="Pages\Shared\Sidebar.ascx" />
@@ -121,6 +122,7 @@
     <Content Include="Pages\Index.aspx" />
     <Content Include="Scripts\app.js" />
     <Content Include="Scripts\categorie-vacanta.js" />
+    <Content Include="Scripts\facilitate.js" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
@@ -157,6 +159,7 @@
     <Compile Include="Classes\DTO\Recenzie.cs" />
     <Compile Include="Classes\DTO\Sugestie.cs" />
     <Compile Include="Classes\DTO\Utilizator.cs" />
+    <Compile Include="Classes\Library\S3Utils.cs" />
     <Compile Include="Interfaces\IRepository.cs" />
     <Compile Include="Pages\Index.aspx.cs">
       <DependentUpon>Index.aspx</DependentUpon>

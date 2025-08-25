@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -58,6 +58,29 @@ namespace WebAdminDashboard
         {
             var data = new SugestieRepository().GetAll();
             return new JavaScriptSerializer().Serialize(data);
+        }
+
+        [WebMethod]
+        public static string UploadCategorieImage(string base64Image, string fileName, string categorieId)
+        {
+            // TODO: Implement image upload to AWS S3
+            // 1. Validate base64Image and fileName
+            // 2. Convert base64 to byte array
+            // 3. Upload to S3 using S3Utils
+            // 4. Update CategorieVacanta record with new image URL
+            // 5. Return success/error response
+            return "";
+        }
+
+        [WebMethod]
+        public static string DeleteCategorieImage(string categorieId)
+        {
+            // TODO: Implement image deletion from AWS S3
+            // 1. Get current image URL from database
+            // 2. Delete image from S3 using S3Utils
+            // 3. Update CategorieVacanta record to remove image URL
+            // 4. Return success/error response
+            return "";
         }
     }
 }
