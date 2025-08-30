@@ -78,13 +78,6 @@
     background: rgba(0, 0, 0, 0.8);
 }
 
-/* Image preview in table */
-#tblCategorii .img-thumbnail {
-    max-height: 50px;
-    max-width: 100px;
-    object-fit: cover;
-}
-
 /* Previzualizare imagine */
 #preview-container {
     margin-top: 10px;
@@ -151,17 +144,7 @@
         transform: rotate(90deg) scale(1.1);
     }
 
-/* Butoanele Acțiuni (edit/delete) */
-.btn-action {
-    background: none;
-    border: none;
-    padding: 4px 6px; /* mai mult spațiu orizontal pentru distanțare */
-    cursor: pointer;
-    font-size: 18px; /* puțin mai mare */
-    line-height: 1;
-    margin-right: 6px; /* distanță între ele */
-    transition: transform 0.2s;
-}
+
 
     .btn-action:last-child {
         margin-right: 0; /* ultimul nu are margin */

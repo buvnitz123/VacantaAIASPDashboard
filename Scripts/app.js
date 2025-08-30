@@ -152,8 +152,6 @@
                 { data: 'Denumire' },
                 {
                     data: 'ImagineUrl',
-                    orderable: false,
-                    searchable: false,
                     render: function (data, type, row) {
                         return data ? "<button class='btn-action view' title='Vizualizare imagine' data-image='" + data + "'><i class='fas fa-search'></i></button>" : "";
                     }
@@ -287,7 +285,7 @@
     var facilitatiInited = false;
     function initFacilitatiTable() {
         if (facilitatiInited || typeof $ === 'undefined' || !$('#tblFacilitati').length) return;
-        $('#tblFacilitati').DataTable({
+        var table = $('#tblFacilitati').DataTable({
             ajax: {
                 url: 'Index.aspx/GetFacilitatiData',
                 type: 'POST',
@@ -295,16 +293,91 @@
                 dataType: 'json',
                 dataSrc: function (json) {
                     var data = [];
-                    try { data = JSON.parse(json.d); } catch (e) { }
+                    try { data = JSON.parse(json.d); } catch (e) { console.error('Error parsing facilitati data:', e); }
                     return data;
                 }
             },
             columns: [
-                { data: 'Id_Facilitate' },
-                { data: 'Denumire' },
-                { data: 'Descriere' }
+                { 
+                    data: 'Id_Facilitate',
+                    className: 'dt-left',
+                },
+                { 
+                    data: 'Denumire',
+                    className: 'dt-left'
+                },
+                { 
+                    data: 'Descriere',
+                    className: 'descriere-cell',
+                    render: function(data, type, row) {
+                        if (type === 'display' && data) {
+                            const previewText = data.length > 10 ? data.substring(0, 10) + '...' : data;
+                            return `
+                                <div class="descriere-content">
+                                    <button class="btn-action view-descriere" title="Vizualizează descrierea" data-descriere="${data}">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                    <span class="desc-preview">${previewText}</span>
+                                </div>
+                            `;
+                        }
+                        return '';
+                    }
+                },
+                {
+                    data: null,
+                    orderable: false,
+                    className: 'dt-left',
+                    render: function(data, type, row) {
+                        return `
+                            <div class="action-buttons">
+                                <button class="btn-action edit" title="Editează" data-id="${row.Id_Facilitate}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-action delete" title="Șterge" data-id="${row.Id_Facilitate}" data-denumire="${row.Denumire}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                    }
+                }
             ]
         });
+
+        $('#tblFacilitati tbody').on('click', '.btn-action.edit', function() {
+            var id = $(this).data('id');
+            editFacilitate(id);
+        });
+        
+        // Handle view description button click
+        $('#tblFacilitati tbody').on('click', '.btn-action.view-descriere', function(e) {
+            e.stopPropagation();
+            var descriere = $(this).data('descriere');
+            if (descriere) {
+                // Show description in a simple dialog
+                $('<div>')
+                    .html('<p style="max-width: 400px; max-height: 300px; overflow: auto; white-space: pre-wrap;">' + descriere + '</p>')
+                    .dialog({
+                        title: 'Descriere',
+                        width: 550,
+                        modal: true,
+                        buttons: {
+                            'Închide': function() {
+                                $(this).dialog('close');
+                            }
+                        }
+                    });
+            }
+        });
+
+        $('#tblFacilitati tbody').on('click', '.btn-action.delete', function() {
+            var $button = $(this);
+            var id = $button.data('id');
+            var denumire = $button.data('denumire');
+
+            confirmDeleteFacilitate(id, denumire);
+        });
+
         facilitatiInited = true;
     }
 

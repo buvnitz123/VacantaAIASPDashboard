@@ -46,8 +46,137 @@ namespace WebAdminDashboard
         [WebMethod]
         public static string GetFacilitatiData()
         {
-            var data = new FacilitateRepository().GetAll();
-            return new JavaScriptSerializer().Serialize(data);
+            try
+            {
+                var data = new FacilitateRepository().GetAll();
+                return JsonConvert.SerializeObject(data);
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+            }
+        }
+
+        [WebMethod]
+        public static string GetFacilitateById(int id)
+        {
+            try
+            {
+                var facilitate = new FacilitateRepository().GetById(id);
+                if (facilitate == null)
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Facilitatea nu a fost găsită" });
+                }
+                return JsonConvert.SerializeObject(facilitate);
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+            }
+        }
+
+        [WebMethod]
+        public static string AddFacilitate(int id, string denumire, string descriere)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(denumire))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Denumirea este obligatorie" });
+                }
+
+                var repository = new FacilitateRepository();
+                
+                // Check if ID already exists
+                if (repository.GetById(id) != null)
+                {
+                    // If ID exists, generate a new one by adding a random number
+                    id += new Random().Next(1, 1000);
+                }
+
+                var facilitate = new Facilitate
+                {
+                    Id_Facilitate = id,
+                    Denumire = denumire.Trim(),
+                    Descriere = !string.IsNullOrWhiteSpace(descriere) ? descriere.Trim() : null
+                };
+
+                repository.Insert(facilitate);
+
+                return JsonConvert.SerializeObject(new { success = true, id = facilitate.Id_Facilitate });
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+            }
+        }
+
+        [WebMethod]
+        public static string UpdateFacilitate(int id, string denumire, string descriere)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(denumire))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Denumirea este obligatorie" });
+                }
+
+                var repository = new FacilitateRepository();
+                var facilitate = repository.GetById(id);
+                
+                if (facilitate == null)
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Facilitatea nu a fost găsită" });
+                }
+
+                facilitate.Denumire = denumire.Trim();
+                facilitate.Descriere = !string.IsNullOrWhiteSpace(descriere) ? descriere.Trim() : null;
+                
+                repository.Update(facilitate);
+
+                return JsonConvert.SerializeObject(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = ex.Message });
+            }
+        }
+
+        [WebMethod]
+        public static string DeleteFacilitate(int id)
+        {
+            try
+            {
+                var repository = new FacilitateRepository();
+                var facilitate = repository.GetById(id);
+                
+                if (facilitate == null)
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Facilitatea nu a fost găsită" });
+                }
+
+                // Verifică dacă există relații în tabelele asociate înainte de ștergere
+                var destinatieFacilitateRepo = new DestinatieFacilitateRepository();
+                var areRelatii = destinatieFacilitateRepo.GetAll().Any(df => df.Id_Facilitate == id);
+                
+                if (areRelatii)
+                {
+                    return JsonConvert.SerializeObject(new { 
+                        success = false, 
+                        message = "Nu se poate șterge această facilitate deoarece este folosită în alte înregistrări" 
+                    });
+                }
+
+                repository.Delete(id);
+                return JsonConvert.SerializeObject(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { 
+                    success = false, 
+                    message = "Eroare la ștergerea facilității: " + ex.Message 
+                });
+            }
         }
 
         [WebMethod]

@@ -18,6 +18,11 @@ namespace WebAdminDashboard.Classes.Database
                 .Property(c => c.Id_CategorieVacanta)
                 .HasDatabaseGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None);
             
+
+            modelBuilder.Entity<Facilitate>()
+                .Property(f => f.Id_Facilitate)
+                .HasDatabaseGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None);
+            
             base.OnModelCreating(modelBuilder);
         }
 
