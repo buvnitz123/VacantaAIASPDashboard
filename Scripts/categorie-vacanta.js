@@ -28,7 +28,7 @@ $(function () {
 
     imagine.on('change', function () {
         previewImage(this);
-        imagine.removeClass("ui-state-error"); // scoate roșu imediat după alegere
+        imagine.removeClass("ui-state-error");
     });
 
     function adaugaCategorie() {
@@ -48,20 +48,74 @@ $(function () {
         }
 
         if (valid) {
-            var idUnic = Date.now();
-
-            // Folosim DataTables API
-            var table = $('#tblCategorii').DataTable();
-
-            var imageUrl = URL.createObjectURL(imagine[0].files[0]); // fișierul selectat
-
-            table.row.add({
-                Id_CategorieVacanta: idUnic,
-                Denumire: denumire.val(),
-                ImagineUrl: imageUrl
-            }).draw();
-
-            dialog.dialog("close");
+            var file = imagine[0].files[0];
+            var reader = new FileReader();
+            
+            reader.onload = function(e) {
+                var base64Data = e.target.result;
+                
+                $('#upload-progress').show();
+                $('#progress-text').text('0%');
+                
+                var progress = 0;
+                var progressInterval = setInterval(function() {
+                    progress += Math.random() * 10;
+                    if (progress > 95) progress = 95;
+                    
+                    $('#progress-text').text(Math.round(progress) + '%');
+                }, 300);
+                
+                var categorieId = Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 1000);
+                
+                $.ajax({
+                    type: "POST",
+                    url: "Index.aspx/AddCategorieVacanta",
+                    data: JSON.stringify({
+                        categorieId: categorieId,
+                        denumire: denumire.val(),
+                        base64Image: base64Data,
+                        fileName: categorieId + "_" + denumire.val().replace(/\s+/g, '_') + "_categorie" + file.name.substring(file.name.lastIndexOf('.'))
+                    }),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function(response) {
+                        clearInterval(progressInterval);
+                        $('#progress-text').text('100%');
+                        
+                        setTimeout(function() {
+                            $('#upload-progress').hide();
+                            dialog.dialog("close"); // Close jQuery UI dialog
+                            
+                            var result = JSON.parse(response.d);
+                            if (result.success) {
+                                updateTips('Categoria a fost adăugată cu succes!');
+                                $('#tblCategorii').DataTable().ajax.reload();
+                            } else {
+                                updateTips('Eroare: ' + result.message);
+                            }
+                        }, 500);
+                    },
+                    error: function(xhr, status, error) {
+                        clearInterval(progressInterval);
+                        $('#upload-progress').hide();
+                        
+                        console.log("AJAX Error Details:", xhr, status, error);
+                        console.log("Response Text:", xhr.responseText);
+                        console.log("Status Code:", xhr.status);
+                        
+                        var errorMessage = "Eroare la adaugarea categoriei (Status: " + xhr.status + ")";
+                        
+                        if (xhr.responseText) {
+                            console.log("Full Response:", xhr.responseText);
+                            errorMessage += " - Verifica consola pentru detalii complete";
+                        }
+                        
+                        updateTips(errorMessage);
+                    }
+                });
+            };
+            
+            reader.readAsDataURL(file);
         }
         return valid;
     }
@@ -70,19 +124,24 @@ $(function () {
     // Initializare dialog
     dialog = $("#dialog-categorie").dialog({
         autoOpen: false,
-        height: 550,
-        width: 500,
+        height: 500,
+        width: 450,
         modal: true,
         buttons: {
-            "Adaugă categorie": adaugaCategorie,
-            "Anulare": function () {
+            "Adauga": adaugaCategorie,
+            "Anulare": function() {
+                $('#upload-progress').hide();
+                $('#preview-container').hide();
+                $('#img-preview').attr('src', '');
                 dialog.dialog("close");
             }
         },
-        close: function () {
+        close: function() {
+            $('#upload-progress').hide();
+            $('#preview-container').hide();
+            $('#img-preview').attr('src', '');
             form[0].reset();
             allFields.removeClass("ui-state-error");
-            $('#preview-container').hide();
         }
     });
 
@@ -98,9 +157,23 @@ $(function () {
     var previewDialog = $("#dialog-preview-categorie").dialog({
         autoOpen: false,
         modal: true,
-        width: 650,
-        height: 600,
-        resizable: false,
+        width: 900,
+        height: 700,
+        resizable: true,
+        open: function() {
+            // Force dialog to be centered after image loads
+            var img = $(this).find('img');
+            if (img.length) {
+                img.on('load', function() {
+                    previewDialog.dialog('option', 'position', { my: 'center', at: 'center', of: window });
+                });
+            }
+        },
+        close: function() {
+            // Clear the image source when dialog is closed
+            $('#preview-img').attr('src', '');
+        },
+        position: { my: 'center', at: 'center', of: window },
         buttons: {
             "Inchide": function () {
                 previewDialog.dialog("close");
@@ -109,68 +182,100 @@ $(function () {
     });
 
 
-    $('#tblCategorii tbody').on('click', '.btn-icon.lupa', function () {
-        var imageUrl = $(this).data('img-url'); // preluam URL-ul imaginii din data attribute
-        if (!imageUrl) return;
-        $('#preview-img').attr('src', imageUrl); // setam imaginea in dialog
-        previewDialog.dialog("open"); // deschidem dialogul
-    });
-
-    // Dialog pentru confirmare ștergere
+    // Initialize delete dialog
     var deleteDialog = $("#dialog-delete-categorie").dialog({
         autoOpen: false,
         modal: true,
-        width: 450,
-        height: 300,
-        resizable: false,
+        width: 400,
         buttons: {
-            "OK": function () {
-                var categorieId = $(this).data('categorie-id');
-                var categorieName = $(this).data('categorie-name');
+            "Șterge": function() {
+                var deleteButton = $(this).find(".ui-dialog-buttonpane button:first");
+                var originalContent = deleteButton.html();
+                deleteButton.html('<i class="fas fa-spinner fa-spin"></i> Se șterge...');
+                deleteButton.prop('disabled', true);
                 
-                // TODO: Aici va fi apelul către server pentru ștergere
-                // Pentru moment, simulăm ștergerea din tabel
+                var categorieId = $(this).data('categorieId');
+                var row = $(this).data('row');
                 var table = $('#tblCategorii').DataTable();
-                var rowToDelete = table.rows().nodes().to$().filter(function() {
-                    return $(this).find('td:first').text() == categorieId;
+                
+                $.ajax({
+                    type: "POST",
+                    url: "Index.aspx/DeleteCategorieVacanta",
+                    data: JSON.stringify({ categorieId: categorieId }),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function(response) {
+                        var result = JSON.parse(response.d);
+                        if (result.success) {
+                            table.row(row).remove().draw(false);
+                            updateTips('Categoria a fost ștearsă cu succes!');
+                        } else {
+                            updateTips('Eroare: ' + result.message);
+                        }
+                        deleteDialog.dialog("close");
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Delete error:", error);
+                        updateTips('A apărut o eroare la ștergerea categoriei.');
+                        deleteDialog.dialog("close");
+                    }
                 });
-                
-                if (rowToDelete.length > 0) {
-                    table.row(rowToDelete).remove().draw();
-                    
-                    // Simulam un mesaj de succes
-                    updateTips("Categoria '" + categorieName + "' a fost stearsa cu succes.");
-                }
-                
-                deleteDialog.dialog("close");
             },
-            "Cancel": function () {
-                deleteDialog.dialog("close");
+            "Anulează": function() {
+                $(this).dialog("close");
             }
+        },
+        close: function() {
+            $(this).removeData('categorieId').removeData('row');
+            $(this).find(".ui-dialog-buttonpane button:first")
+                   .prop('disabled', false)
+                   .html('Șterge');
         }
     });
 
-    // Event handler pentru butonul de stergere
-    $('#tblCategorii tbody').on('click', '.btn-action.delete', function () {
+    // Handle delete button click
+    $('#tblCategorii tbody').on('click', '.btn-action.delete', function (e) {
+        e.preventDefault();
         var row = $(this).closest('tr');
         var table = $('#tblCategorii').DataTable();
         var rowData = table.row(row).data();
         
         if (rowData) {
-            var categorieId = rowData.Id_CategorieVacanta;
-            var categorieName = rowData.Denumire;
-            
-            // Setam datele in dialog
-            $('#delete-categorie-name').text(categorieName);
-            deleteDialog.data('categorie-id', categorieId);
-            deleteDialog.data('categorie-name', categorieName);
-            
-            // Deschidem dialogul de confirmare
-            deleteDialog.dialog("open");
+            deleteDialog
+                .data('categorieId', rowData.Id_CategorieVacanta)
+                .data('row', row)
+                .find("#delete-categorie-name").text(rowData.Denumire)
+                .end()
+                .dialog("open");
+        }
+    });
+    // Initialize preview dialog
+    var previewDialog = $("#dialog-preview-categorie").dialog({
+        autoOpen: false,
+        modal: true,
+        width: 'auto',
+        maxWidth: '90%',
+        height: 'auto',
+        maxHeight: '90vh',
+        buttons: {
+            "Închide": function() {
+                $(this).dialog("close");
+            }
+        }
+    });
+    
+    // Handle view button click
+    $('#tblCategorii').on('click', '.btn-action.view', function() {
+        var row = $(this).closest('tr');
+        var table = $('#tblCategorii').DataTable();
+        var rowData = table.row(row).data();
+        
+        if (rowData && rowData.UrlImagine) {
+            $('#preview-img').attr('src', rowData.UrlImagine);
+            previewDialog.dialog("open");
         }
     });
 
-    // Previzualizare imagine pentru editare
     function previewEditImage(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
@@ -205,35 +310,75 @@ $(function () {
             var categorieId = $('#edit-id').val();
             var newDenumire = editDenumire.val();
             
-            // TODO: Aici va fi apelul catre server pentru modificare
-            // Pentru moment, simulam modificarea in tabel
-            var table = $('#tblCategorii').DataTable();
-            var rowToUpdate = table.rows().nodes().to$().filter(function() {
-                return $(this).find('td:first').text() == categorieId;
-            });
-            
-            if (rowToUpdate.length > 0) {
-                var rowData = table.row(rowToUpdate).data();
-                rowData.Denumire = newDenumire;
+            // Check if new image is selected
+            if (editImagine[0].files && editImagine[0].files.length > 0) {
+                var file = editImagine[0].files[0];
+                var reader = new FileReader();
                 
-                // Daca s-a selectat o imagine noua, actualizam si URL-ul
-                if (editImagine[0].files && editImagine[0].files.length > 0) {
-                    var newImageUrl = URL.createObjectURL(editImagine[0].files[0]);
-                    rowData.ImagineUrl = newImageUrl;
-                }
+                reader.onload = function(e) {
+                    var base64Image = e.target.result;
+                    
+                    $.ajax({
+                        type: "POST",
+                        url: "Index.aspx/UploadCategorieImage",
+                        data: JSON.stringify({
+                            base64Image: base64Image,
+                            fileName: file.name,
+                            categorieId: categorieId
+                        }),
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function(response) {
+                            var result = JSON.parse(response.d);
+                            if (result.success) {
+                                // Update name separately if needed
+                                updateCategoryName(categorieId, newDenumire);
+                            } else {
+                                updateTips('Eroare: ' + result.message);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            updateTips("Eroare la modificarea imaginii: " + error);
+                        }
+                    });
+                };
                 
-                table.row(rowToUpdate).data(rowData).draw();
-                
-                // Simulam un mesaj de succes
-                updateTips("Categoria '" + newDenumire + "' a fost modificata cu succes.");
+                reader.readAsDataURL(file);
+            } else {
+                // Only update name
+                updateCategoryName(categorieId, newDenumire);
             }
-            
-            editDialog.dialog("close");
         }
         return valid;
     }
 
-    // Dialog pentru editare
+    // Helper function to update category name only
+    function updateCategoryName(categorieId, newDenumire) {
+        $.ajax({
+            type: "POST",
+            url: "Index.aspx/UpdateCategorieVacantaName",
+            data: JSON.stringify({
+                categorieId: categorieId,
+                newDenumire: newDenumire
+            }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(response) {
+                var result = JSON.parse(response.d);
+                if (result.success) {
+                    $('#tblCategorii').DataTable().ajax.reload();
+                    updateTips("Categoria '" + newDenumire + "' a fost modificata cu succes.");
+                    editDialog.dialog("close");
+                } else {
+                    updateTips(result.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                updateTips("Eroare la modificarea categoriei: " + error);
+            }
+        });
+    }
+
     var editDialog = $("#dialog-edit-categorie").dialog({
         autoOpen: false,
         height: 600,
@@ -256,7 +401,34 @@ $(function () {
         }
     });
 
-    // Event handler pentru butonul de editare
+    // Initialize preview dialog
+    $("#dialog-preview-categorie").dialog({
+        autoOpen: false,
+        modal: true,
+        width: 'auto',
+        maxWidth: '90%',
+        height: 'auto',
+        maxHeight: '90vh',
+        buttons: {
+            "Închide": function() {
+                $(this).dialog("close");
+            }
+        }
+    });
+
+    // Handle view button click
+    $('#tblCategorii tbody').on('click', '.btn-action.view', function () {
+        var row = $(this).closest('tr');
+        var table = $('#tblCategorii').DataTable();
+        var rowData = table.row(row).data();
+        
+        if (rowData) {
+            $('#preview-img').attr('src', rowData.UrlImagine);
+            $('#dialog-preview-categorie').dialog('open');
+        }
+    });
+
+    // Handle edit button click
     $('#tblCategorii tbody').on('click', '.btn-action.edit', function () {
         var row = $(this).closest('tr');
         var table = $('#tblCategorii').DataTable();

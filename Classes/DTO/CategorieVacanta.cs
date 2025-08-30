@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -19,7 +19,6 @@ namespace WebAdminDashboard.Classes.DTO
         [Column("Denumire")]
         public string Denumire { get; set; }
 
-        [Required]
         [StringLength(100)]
         [Column("ImagineUrl")]
         public string ImagineUrl { get; set; }

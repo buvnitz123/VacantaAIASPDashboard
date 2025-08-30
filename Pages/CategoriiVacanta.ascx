@@ -31,6 +31,11 @@
             <label for="imagine">Imagine</label>
             <input type="file" name="imagine" id="imagine" accept="image/*" class="file-input">
             
+            <!-- Progress indicator pentru upload -->
+            <div id="upload-progress" style="display:none; margin: 10px 0;">
+                <label>Se incarca imaginea... <span id="progress-text">0%</span></label>
+            </div>
+            
             <!-- Previzualizare imagine -->
             <div id="preview-container" style="display:none;">
                 <label>Previzualizare:</label>
@@ -74,13 +79,11 @@
             <label for="edit-imagine">Imagine noua (optional)</label>
             <input type="file" name="edit-imagine" id="edit-imagine" accept="image/*" class="file-input">
             
-            <!-- Previzualizare imagine curenta -->
             <div id="edit-current-image" style="display:none;">
                 <label>Imagine curenta:</label>
                 <img id="edit-current-img" src="" alt="Imagine curenta" class="img-preview">
             </div>
             
-            <!-- Previzualizare imagine noua -->
             <div id="edit-preview-container" style="display:none;">
                 <label>Previzualizare imagine noua:</label>
                 <img id="edit-img-preview" src="" alt="Preview" class="img-preview">

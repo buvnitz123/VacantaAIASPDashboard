@@ -6,8 +6,6 @@ $(document).ready(function () {
     
     // Bind events
     bindFacilitateEvents();
-    
-
 });
 
 function initializeFacilitateModals() {
@@ -168,10 +166,7 @@ function updateFacilitateTable() {
                     `;
                 }
             }
-        ],
-        language: {
-            url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Romanian.json'
-        }
+        ]
     });
 }
 

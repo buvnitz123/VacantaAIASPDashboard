@@ -1,15 +1,25 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Web;
 using WebAdminDashboard.Classes.DTO;
+using WebAdminDashboard.Classes.Library;
 
 namespace WebAdminDashboard.Classes.Database
 {
     public class AppContext : DbContext
     {
-        public AppContext() : base("name=DbContext") { }
+        public AppContext() : base(EncryptionUtils.GetDecryptedConnectionString("DbContext")) { }
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<CategorieVacanta>()
+                .Property(c => c.Id_CategorieVacanta)
+                .HasDatabaseGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None);
+            
+            base.OnModelCreating(modelBuilder);
+        }
 
         public DbSet<Utilizator> Utilizatori { get; set; }
         public DbSet<CategorieVacanta> CategoriiVacanta { get; set; }

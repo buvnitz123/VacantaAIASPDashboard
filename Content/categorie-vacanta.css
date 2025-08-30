@@ -45,6 +45,46 @@
     margin-bottom: 15px;
 }
 
+/* Image cell in DataTable */
+.image-cell {
+    position: relative;
+    display: inline-block;
+}
+
+/* Magnifying glass button */
+.btn-icon.lupa {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.image-cell:hover .btn-icon.lupa {
+    opacity: 1;
+}
+
+.btn-icon.lupa:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* Image preview in table */
+#tblCategorii .img-thumbnail {
+    max-height: 50px;
+    max-width: 100px;
+    object-fit: cover;
+}
+
 /* Previzualizare imagine */
 #preview-container {
     margin-top: 10px;
@@ -236,4 +276,28 @@
     margin-top: 8px;
     border-radius: 8px;
     border: 1px solid #393e46;
+}
+
+/* Progress indicator styles */
+
+#upload-progress {
+    text-align: center;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+}
+
+#upload-progress label {
+    color: #222831;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+#progress-text {
+    font-size: 14px;
+    color: #0092ca;
+    font-weight: bold;
+    margin-top: 5px;
+    display: inline-block;
 }

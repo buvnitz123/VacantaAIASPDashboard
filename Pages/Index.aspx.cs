@@ -9,6 +9,10 @@ using WebAdminDashboard.Classes.DTO;
 using System.Web.Services;
 using System.Web.Script.Serialization;
 using WebAdminDashboard.Classes.Database.Repositories;
+using WebAdminDashboard.Classes.Library;
+using Newtonsoft.Json;
+using System.Diagnostics;
+using System.IO;
 
 namespace WebAdminDashboard
 {
@@ -63,24 +67,235 @@ namespace WebAdminDashboard
         [WebMethod]
         public static string UploadCategorieImage(string base64Image, string fileName, string categorieId)
         {
-            // TODO: Implement image upload to AWS S3
-            // 1. Validate base64Image and fileName
-            // 2. Convert base64 to byte array
-            // 3. Upload to S3 using S3Utils
-            // 4. Update CategorieVacanta record with new image URL
-            // 5. Return success/error response
-            return "";
+            try
+            {
+                Debug.WriteLine("UploadCategorieImage called with fileName: " + fileName + " and categorieId: " + categorieId);
+                if (string.IsNullOrEmpty(base64Image) || string.IsNullOrEmpty(fileName))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Parametri invalizi" });
+                }
+
+                Debug.WriteLine("Base64 image length: " + base64Image.Length);
+                var imageBytes = S3Utils.ConvertBase64ToBytes(base64Image);
+                if (imageBytes == null || imageBytes.Length == 0)
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Imagine invalida" });
+                }
+
+                // Get content type from filename
+                var contentType = S3Utils.GetContentTypeFromFileName(fileName);
+                if (!S3Utils.IsValidImageType(contentType))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Tipul de fisier nu este suportat" });
+                }
+
+                // Upload to S3
+                var imageUrl = S3Utils.UploadImage(imageBytes, fileName, contentType);
+                if (string.IsNullOrEmpty(imageUrl))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Eroare la incarcarea imaginii" });
+                }
+
+                // Update database record if categorieId is provided (for edit)
+                if (!string.IsNullOrEmpty(categorieId) && int.TryParse(categorieId, out int id))
+                {
+                    var repository = new CategorieVacantaRepository();
+                    var categorie = repository.GetById(id);
+                    if (categorie != null)
+                    {
+                        // Delete old image if exists
+                        if (!string.IsNullOrEmpty(categorie.ImagineUrl))
+                        {
+                            S3Utils.DeleteImage(categorie.ImagineUrl);
+                        }
+                        
+                        // Update with new image URL
+                        categorie.ImagineUrl = imageUrl;
+                        repository.Update(categorie);
+                    }
+                }
+
+                return JsonConvert.SerializeObject(new { success = true, imageUrl = imageUrl, message = "Imagine incarcata cu succes" });
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = $"Eroare: {ex.Message}" });
+            }
         }
 
         [WebMethod]
-        public static string DeleteCategorieImage(string categorieId)
+        public static string AddCategorieVacanta(int categorieId, string denumire, string base64Image, string fileName)
         {
-            // TODO: Implement image deletion from AWS S3
-            // 1. Get current image URL from database
-            // 2. Delete image from S3 using S3Utils
-            // 3. Update CategorieVacanta record to remove image URL
-            // 4. Return success/error response
-            return "";
+            try
+            {
+                Debug.WriteLine($"[DEBUG] AddCategorieVacanta started - ID: {categorieId}, Denumire: {denumire}, File: {fileName}");
+                Debug.WriteLine($"[DEBUG] Base64 length: {base64Image?.Length ?? 0} characters");
+                
+                if (string.IsNullOrEmpty(denumire))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Denumirea este obligatorie" });
+                }
+
+                string imageUrl = null;
+                
+                // 1. Upload image to S3 first
+                if (!string.IsNullOrEmpty(base64Image) && !string.IsNullOrEmpty(fileName))
+                {
+                    try
+                    {
+                        Debug.WriteLine("[DEBUG] Starting image conversion from base64");
+                        var imageBytes = S3Utils.ConvertBase64ToBytes(base64Image);
+                        Debug.WriteLine($"[DEBUG] Image converted to bytes. Length: {imageBytes?.Length ?? 0} bytes");
+                        if (imageBytes != null && imageBytes.Length > 0)
+                        {
+                            var contentType = S3Utils.GetContentTypeFromFileName(fileName);
+                            Debug.WriteLine($"[DEBUG] Content type detected: {contentType}");
+                            
+                            if (S3Utils.IsValidImageType(contentType))
+                            {
+                                Debug.WriteLine("[DEBUG] Content type is valid. Preparing for S3 upload...");
+                                {
+                                    var extension = Path.GetExtension(fileName);
+                                    var safeDenumire = denumire.Trim().Replace(" ", "_").Replace("-", "_");
+                                    var customFileName = $"categories/{categorieId}_{safeDenumire}_categorie{extension}";
+                                    Debug.WriteLine($"[DEBUG] Uploading to S3: {customFileName}");
+                                    imageUrl = S3Utils.UploadImage(imageBytes, customFileName, contentType);
+                                    Debug.WriteLine($"[DEBUG] S3 upload completed. URL: {imageUrl}");
+                                    
+                                    if (string.IsNullOrEmpty(imageUrl))
+                                    {
+                                        return JsonConvert.SerializeObject(new { 
+                                            success = false, 
+                                            message = "Eroare la încărcarea imaginii în S3" 
+                                        });
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                return JsonConvert.SerializeObject(new { 
+                                    success = false, 
+                                    message = "Tip de fișier imagine neacceptat" 
+                                });
+                            }
+                        }
+                    }
+                    catch (Exception imgEx)
+                    {
+                        Debug.WriteLine($"Image upload error: {imgEx.Message}");
+                        return JsonConvert.SerializeObject(new { 
+                            success = false, 
+                            message = $"Eroare la procesarea imaginii: {imgEx.Message}" 
+                        });
+                    }
+                }
+
+                // 2. Save to database only after successful S3 upload
+                Debug.WriteLine("[DEBUG] Preparing to save to database...");
+                var repository = new CategorieVacantaRepository();
+                var categorie = new CategorieVacanta
+                {
+                    Id_CategorieVacanta = categorieId,
+                    Denumire = denumire.Trim(),
+                    ImagineUrl = imageUrl
+                };
+
+                try
+                {
+                    Debug.WriteLine("[DEBUG] Inserting category into database...");
+                    repository.Insert(categorie);
+                    Debug.WriteLine("[DEBUG] Category successfully inserted into database");
+                    
+                    var result = new { 
+                        success = true, 
+                        message = "Categoria a fost adăugată cu succes",
+                        imageUrl = imageUrl
+                    };
+                    
+                    Debug.WriteLine($"[DEBUG] Returning success response: {JsonConvert.SerializeObject(result)}");
+                    return JsonConvert.SerializeObject(result);
+                }
+                catch (Exception dbEx)
+                {
+                    // If database save fails, try to delete the uploaded image
+                    if (!string.IsNullOrEmpty(imageUrl))
+                    {
+                        try { S3Utils.DeleteImage(imageUrl); } 
+                        catch (Exception delEx) { 
+                            Debug.WriteLine($"Failed to delete image from S3: {delEx.Message}");
+                            // Continue with the original error
+                        }
+                    }
+                    
+                    Debug.WriteLine($"Database error: {dbEx.Message}");
+                    return JsonConvert.SerializeObject(new { 
+                        success = false, 
+                        message = $"Eroare la salvarea în baza de date: {dbEx.Message}" 
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"AddCategorieVacanta error: {ex.Message}");
+                Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                return JsonConvert.SerializeObject(new { success = false, message = $"Eroare: {ex.Message}" });
+            }
         }
+
+        [WebMethod]
+        public static string UpdateCategorieVacantaName(string categorieId, string newDenumire)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(categorieId) || !int.TryParse(categorieId, out int id))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "ID categorie invalid" });
+                }
+
+                if (string.IsNullOrEmpty(newDenumire))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Denumirea este obligatorie" });
+                }
+
+                var repository = new CategorieVacantaRepository();
+                var categorie = repository.GetById(id);
+                
+                if (categorie == null)
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Categoria nu a fost gasita" });
+                }
+
+                categorie.Denumire = newDenumire.Trim();
+                repository.Update(categorie);
+
+                return JsonConvert.SerializeObject(new { success = true, message = "Categoria a fost modificata cu succes" });
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = $"Eroare: {ex.Message}" });
+            }
+        }
+
+        [WebMethod]
+        public static string DeleteCategorieVacanta(string categorieId)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(categorieId) || !int.TryParse(categorieId, out int id))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "ID categorie invalid" });
+                }
+
+                var repository = new CategorieVacantaRepository();
+                repository.Delete(id);
+
+                return JsonConvert.SerializeObject(new { success = true, message = "Categoria a fost stearsa cu succes" });
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = $"Eroare: {ex.Message}" });
+            }
+        }
+
     }
 }

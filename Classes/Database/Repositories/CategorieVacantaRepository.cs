@@ -3,6 +3,8 @@ using System.Data.Entity;
 using System.Linq;
 using WebAdminDashboard.Classes.DTO;
 using WebAdminDashboard.Interfaces;
+using WebAdminDashboard.Classes.Library;
+using System.Diagnostics;
 
 namespace WebAdminDashboard.Classes.Database.Repositories
 {
@@ -42,6 +44,20 @@ namespace WebAdminDashboard.Classes.Database.Repositories
             var entity = GetById(id);
             if (entity != null)
             {
+                // Delete image from S3 if exists
+                if (!string.IsNullOrEmpty(entity.ImagineUrl))
+                {
+                    try
+                    {
+                        S3Utils.DeleteImage(entity.ImagineUrl);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        // Log error but continue with database deletion
+                        Debug.WriteLine($"Failed to delete image from S3: {ex.Message}");
+                    }
+                }
+
                 _context.CategoriiVacanta.Remove(entity);
                 _context.SaveChanges();
             }

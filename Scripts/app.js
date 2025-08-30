@@ -1,4 +1,4 @@
-﻿// Sidebar toggle logic
+// Sidebar toggle logic
 (function () {
     var allowedSections = ['home', 'utilizatori', 'categorii', 'destinatii', 'facilitati', 'puncte', 'sugestii'];
 
@@ -105,7 +105,6 @@
         });
     }
 
-    // ---- DataTables initializers ----
     var utilizatoriInited = false;
     function initUtilizatoriTable() {
         if (utilizatoriInited || typeof $ === 'undefined' || !$('#tblUtilizatori').length) return;
@@ -153,8 +152,10 @@
                 { data: 'Denumire' },
                 {
                     data: 'ImagineUrl',
+                    orderable: false,
+                    searchable: false,
                     render: function (data, type, row) {
-                        return "<button class='btn-icon lupa' title='Vezi imagine' data-img-url='" + data + "'>🔍</button>";
+                        return data ? "<button class='btn-action view' title='Vizualizare imagine' data-image='" + data + "'><i class='fas fa-search'></i></button>" : "";
                     }
                 },
                 {
@@ -162,12 +163,93 @@
                     orderable: false,
                     searchable: false,
                     render: function (data, type, row) {
-                        return "<button class='btn-action edit' title='Modifică'>✏️</button>" +
-                            "<button class='btn-action delete' title='Șterge'>🗑️</button>";
+                        return "<div class='action-buttons'>" +
+                               "<button class='btn-action edit' title='Modifică' data-id='" + row.Id_CategorieVacanta + "'><i class='fas fa-edit'></i></button>" +
+                               "<button class='btn-action delete' title='Șterge' data-id='" + row.Id_CategorieVacanta + "' data-name='" + row.Denumire + "'><i class='fas fa-trash'></i></button>" +
+                               "</div>";
                     }
                 }
             ]
         });
+        
+        // Add view functionality for categories
+        $(document).on('click', '.btn-action.view', function(e) {
+            e.preventDefault();
+            var imageUrl = $(this).data('image');
+            if (imageUrl) {
+                $('#preview-img').attr('src', imageUrl);
+                $('#dialog-preview-categorie').dialog({
+                    modal: true,
+                    width: 'auto',
+                    maxWidth: '90%',
+                    height: 'auto',
+                    maxHeight: '90vh',
+                    buttons: {
+                        "Închide": function() {
+                            $(this).dialog("close");
+                        }
+                    }
+                });
+            }
+        });
+
+        // Add delete functionality for categories
+        $(document).on('click', '.btn-action.delete', function(e) {
+            e.preventDefault();
+            var categorieId = $(this).data('id');
+            var categorieName = $(this).data('name');
+            var deleteButton = $(this);
+            var row = $(this).closest('tr');
+            var table = $('#tblCategorii').DataTable();
+            
+            // Show confirmation dialog
+            $("#delete-categorie-name").text(categorieName);
+            
+            var deleteDialog = $("#dialog-delete-categorie").dialog({
+                resizable: false,
+                height: "auto",
+                width: 400,
+                modal: true,
+                buttons: {
+                    "Șterge": function() {
+                        var originalContent = deleteButton.html();
+                        deleteButton.html('<i class="fas fa-spinner fa-spin"></i>');
+                        deleteButton.prop('disabled', true);
+                        
+                        $.ajax({
+                            type: "POST",
+                            url: "Index.aspx/DeleteCategorieVacanta",
+                            data: JSON.stringify({ categorieId: categorieId.toString() }),
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            success: function(response) {
+                                var result = JSON.parse(response.d);
+                                if (result.success) {
+                                    table.row(row).remove().draw(false);
+                                    updateTips('Categoria a fost ștearsă cu succes!');
+                                } else {
+                                    updateTips('Eroare: ' + result.message);
+                                    deleteButton.html(originalContent);
+                                    deleteButton.prop('disabled', false);
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                updateTips('Eroare la ștergerea categoriei: ' + error);
+                                deleteButton.html(originalContent);
+                                deleteButton.prop('disabled', false);
+                            },
+                            complete: function() {
+                                deleteDialog.dialog("close");
+                            }
+                        });
+                    },
+                    "Anulează": function() {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        });
+        
         categoriiInited = true;
     }
 
