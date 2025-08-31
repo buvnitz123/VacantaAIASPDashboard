@@ -22,7 +22,11 @@ namespace WebAdminDashboard.Classes.Database
             modelBuilder.Entity<Facilitate>()
                 .Property(f => f.Id_Facilitate)
                 .HasDatabaseGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None);
-            
+
+            modelBuilder.Entity<Destinatie>()
+                .Property(d => d.Id_Destinatie)
+                .HasDatabaseGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None);
+
             base.OnModelCreating(modelBuilder);
         }
 

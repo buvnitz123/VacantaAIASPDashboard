@@ -112,8 +112,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\categorie-vacanta.css" />
+    <Content Include="Content\destinatie.css" />
+    <Content Include="Content\destination-detail.css" />
     <Content Include="Content\facilitate.css" />
     <Content Include="Content\styles.css" />
+    <Content Include="Pages\DestinationDetail.aspx" />
     <Content Include="Pages\Shared\Navbar.ascx" />
     <Content Include="Pages\Shared\Sidebar.ascx" />
     <Content Include="Pages\PunctDeInteres.ascx" />
@@ -125,6 +128,8 @@
     <Content Include="Pages\Index.aspx" />
     <Content Include="Scripts\app.js" />
     <Content Include="Scripts\categorie-vacanta.js" />
+    <Content Include="Scripts\destinatie.js" />
+    <Content Include="Scripts\destination-detail.js" />
     <Content Include="Scripts\facilitate.js" />
     <Content Include="Web.config" />
   </ItemGroup>
@@ -163,8 +168,16 @@
     <Compile Include="Classes\DTO\Sugestie.cs" />
     <Compile Include="Classes\DTO\Utilizator.cs" />
     <Compile Include="Classes\Library\EncryptionUtils.cs" />
+    <Compile Include="Classes\Library\PhotoAPIViews\PexelsPhoto.cs" />
+    <Compile Include="Classes\Library\PhotoAPIViews\PexelsPhotoResponse.cs" />
+    <Compile Include="Classes\Library\PhotoAPIViews\PexelsPhotoSource.cs" />
+    <Compile Include="Classes\Library\PhotoAPIUtils.cs" />
     <Compile Include="Classes\Library\S3Utils.cs" />
     <Compile Include="Interfaces\IRepository.cs" />
+    <Compile Include="Pages\DestinationDetail.aspx.cs">
+      <DependentUpon>DestinationDetail.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Pages\Index.aspx.cs">
       <DependentUpon>Index.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -181,6 +194,7 @@
     <Analyzer Include="packages\AWSSDK.S3.4.0.6.8\analyzers\dotnet\cs\AWSSDK.S3.CodeAnalysis.dll" />
     <Analyzer Include="packages\AWSSDK.S3.4.0.6.8\analyzers\dotnet\cs\SharedAnalysisCode.dll" />
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

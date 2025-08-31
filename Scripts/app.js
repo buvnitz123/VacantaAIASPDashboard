@@ -271,14 +271,76 @@
                 { data: 'Id_Destinatie' },
                 { data: 'Denumire' },
                 { data: 'Tara' },
-                { data: 'Oras' },
-                { data: 'Regiune' },
-                { data: 'Descriere' },
-                { data: 'Data_Inregistrare' },
-                { data: 'PretAdult' },
-                { data: 'PretMinor' }
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    render: function (data, type, row) {
+                        return "<div class='action-buttons'>" +
+                               "<button class='btn-action view' title='Accesare' data-id='" + row.Id_Destinatie + "'><i class='fas fa-eye'></i></button>" +
+                               "<button class='btn-action delete' title='Sterge' data-id='" + row.Id_Destinatie + "' data-name='" + row.Denumire + "'><i class='fas fa-trash'></i></button>" +
+                               "</div>";
+                    }
+                }
             ]
         });
+
+        // Add view functionality for destinations
+        $(document).on('click', '.btn-action.view', function (e) {
+            e.preventDefault();
+            var destinationId = $(this).data('id');
+            console.log('View destination clicked:', destinationId);
+            
+            // Navigate to destination detail page
+            window.location.href = 'DestinationDetail.aspx?id=' + destinationId;
+        });
+
+        // Add delete functionality for destinations
+        $(document).on('click', '.btn-action.delete', function (e) {
+            e.preventDefault();
+            var destinatieId = $(this).data('id');
+            var destinatieName = $(this).data('name');
+            
+            // Show confirmation dialog
+            $("#delete-destinatie-name").text(destinatieName);
+            $("#dialog-delete-destinatie").dialog({
+                resizable: false,
+                height: "auto",
+                width: 400,
+                modal: true,
+                buttons: {
+                    "Sterge": function () {
+                        var dialogRef = $(this);
+                        $.ajax({
+                            type: "POST",
+                            url: "Index.aspx/DeleteDestinatie",
+                            data: JSON.stringify({ destinatieId: destinatieId }),
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            success: function (response) {
+                                console.log("Delete response:", response);
+                                var result = JSON.parse(response.d);
+                                console.log("Parsed delete response:", result);
+                                
+                                if (result && result.success) {
+                                    $('#tblDestinatii').DataTable().ajax.reload();
+                                    dialogRef.dialog("close");
+                                } else {
+                                    alert("Eroare la stergerea destinatiei: " + (result ? result.message : "Eroare necunoscuta"));
+                                }
+                            },
+                            error: function () {
+                                alert("A aparut o eroare la stergerea destinatiei.");
+                            }
+                        });
+                    },
+                    "Anuleaza": function () {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        });
+
         destinatiiInited = true;
     }
 

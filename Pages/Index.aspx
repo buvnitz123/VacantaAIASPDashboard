@@ -1,4 +1,4 @@
-<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Index.aspx.cs" Inherits="WebAdminDashboard.Index" %>
+<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Index.aspx.cs" Inherits="WebAdminDashboard.Index" Async="true" %>
 <%@ Register Src="~/Pages/Shared/Navbar.ascx" TagPrefix="uc" TagName="Navbar" %>
 <%@ Register Src="~/Pages/Shared/Sidebar.ascx" TagPrefix="uc" TagName="Sidebar" %>
 <%@ Register Src="~/Pages/Utilizatori.ascx" TagPrefix="pg" TagName="Utilizatori" %>
@@ -17,6 +17,7 @@
     <link href="/Content/styles.css" rel="stylesheet" />
     <link href="/Content/categorie-vacanta.css" rel="stylesheet" />
     <link href="/Content/facilitate.css?v=13" rel="stylesheet" />
+    <link href="/Content/destinatie.css?v=3" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
     <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
@@ -27,6 +28,7 @@
     <script src="/Scripts/app.js"></script>
     <script src="/Scripts/categorie-vacanta.js"></script>
     <script src="/Scripts/facilitate.js?v=13"></script>
+    <script src="/Scripts/destinatie.js?v=3"></script>
 </head>
 <body>
 

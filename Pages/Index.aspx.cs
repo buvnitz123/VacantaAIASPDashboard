@@ -13,6 +13,7 @@ using WebAdminDashboard.Classes.Library;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.IO;
+using AppContext = WebAdminDashboard.Classes.Database.AppContext;
 
 namespace WebAdminDashboard
 {
@@ -422,6 +423,242 @@ namespace WebAdminDashboard
             }
             catch (Exception ex)
             {
+                return JsonConvert.SerializeObject(new { success = false, message = $"Eroare: {ex.Message}" });
+            }
+        }
+
+        [WebMethod]
+        public static string AddDestinatie(string denumire, string tara, string oras, string regiune, string descriere, decimal pretAdult, decimal pretMinor, string[] imageUrls)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"AddDestinatie called with: denumire={denumire}, tara={tara}, oras={oras}, regiune={regiune}, pretAdult={pretAdult}, pretMinor={pretMinor}, imageUrls count={imageUrls?.Length ?? 0}");
+                
+                if (string.IsNullOrWhiteSpace(denumire) || string.IsNullOrWhiteSpace(tara) || string.IsNullOrWhiteSpace(oras) || string.IsNullOrWhiteSpace(regiune))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Toate câmpurile obligatorii trebuie completate" });
+                }
+
+                if (pretAdult <= 0 || pretMinor <= 0)
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Prețurile trebuie să fie mai mari decât 0" });
+                }
+
+                System.Diagnostics.Debug.WriteLine("Creating destination repository...");
+                DestinatieRepository destinatieRepository = null;
+                try
+                {
+                    destinatieRepository = new DestinatieRepository();
+                    System.Diagnostics.Debug.WriteLine("Destination repository created successfully");
+                }
+                catch (Exception repoEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to create DestinatieRepository: {repoEx.Message}");
+                    throw;
+                }
+                
+                // Generate unique ID using GUID hash for better uniqueness
+                var guidHash = Math.Abs(Guid.NewGuid().GetHashCode());
+                var destinatieId = guidHash % 1000000 + new Random().Next(1, 1000);
+                System.Diagnostics.Debug.WriteLine($"Generated destinatieId: {destinatieId}");
+
+                // Check if ID already exists
+                if (destinatieRepository.GetById(destinatieId) != null)
+                {
+                    // If ID exists, generate a new one
+                    destinatieId += new Random().Next(1, 1000);
+                    System.Diagnostics.Debug.WriteLine($"ID conflict resolved, new destinatieId: {destinatieId}");
+                }
+
+                // Create and insert destination
+                System.Diagnostics.Debug.WriteLine("Creating destination object...");
+                var destinatie = new Destinatie
+                {
+                    Id_Destinatie = destinatieId,
+                    Denumire = denumire.Trim(),
+                    Tara = tara.Trim(),
+                    Oras = oras.Trim(),
+                    Regiune = regiune.Trim(),
+                    Descriere = !string.IsNullOrWhiteSpace(descriere) ? descriere.Trim() : null,
+                    Data_Inregistrare = DateTime.Now,
+                    PretAdult = pretAdult,
+                    PretMinor = pretMinor
+                };
+
+                System.Diagnostics.Debug.WriteLine("Inserting destination into database...");
+                try
+                {
+                    destinatieRepository.Insert(destinatie);
+                    System.Diagnostics.Debug.WriteLine("Destination inserted successfully");
+                }
+                catch (Exception insertEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to insert destination: {insertEx.Message}");
+                    System.Diagnostics.Debug.WriteLine($"Insert exception stack trace: {insertEx.StackTrace}");
+                    throw;
+                }
+
+                // If image URLs are provided, insert all into ImaginiDestinatie
+                if (imageUrls != null && imageUrls.Length > 0)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Adding {imageUrls.Length} images to destination...");
+                    try
+                    {
+                        var imaginiRepository = new ImaginiDestinatieRepository();
+                        
+                        for (int i = 0; i < imageUrls.Length; i++)
+                        {
+                            if (!string.IsNullOrWhiteSpace(imageUrls[i]))
+                            {
+                                // Generate unique ID for each image using GUID
+                                var imageGuidHash = Math.Abs(Guid.NewGuid().GetHashCode());
+                                var imagineId = imageGuidHash % 1000000 + (i * 10000) + new Random().Next(1, 999);
+                                System.Diagnostics.Debug.WriteLine($"Generated imagineId {i+1}: {imagineId}");
+
+                                var imagineDestinatie = new ImaginiDestinatie
+                                {
+                                    Id_Destinatie = destinatieId,
+                                    Id_ImaginiDestinatie = imagineId,
+                                    ImagineUrl = imageUrls[i]
+                                };
+                                System.Diagnostics.Debug.WriteLine($"ImaginiDestinatie object {i+1} created");
+
+                                imaginiRepository.Insert(imagineDestinatie);
+                                System.Diagnostics.Debug.WriteLine($"Image {i+1} inserted successfully");
+                            }
+                        }
+                    }
+                    catch (Exception imgEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Failed to insert images: {imgEx.Message}");
+                        System.Diagnostics.Debug.WriteLine($"Image exception stack trace: {imgEx.StackTrace}");
+                        throw;
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine("AddDestinatie completed successfully");
+                return JsonConvert.SerializeObject(new { success = true, message = "Destinația a fost adăugată cu succes", destinatieId = destinatieId });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Exception in AddDestinatie: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                return JsonConvert.SerializeObject(new { success = false, message = $"Eroare: {ex.Message}" });
+            }
+        }
+
+        [WebMethod]
+        public static string SearchPexelsImages(string query, int perPage = 3)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"SearchPexelsImages called with query: {query}, perPage: {perPage}");
+                
+                if (string.IsNullOrWhiteSpace(query))
+                {
+                    System.Diagnostics.Debug.WriteLine("Query is null or empty");
+                    return JsonConvert.SerializeObject(new { success = false, message = "Termenul de căutare este obligatoriu" });
+                }
+
+                System.Diagnostics.Debug.WriteLine("Calling PhotoAPIUtils.SearchPhotos...");
+                
+                var result = PhotoAPIUtils.SearchPhotos(query, perPage, 1);
+                
+                System.Diagnostics.Debug.WriteLine($"PhotoAPIUtils returned result: {result != null}");
+
+                if (result != null && result.Photos != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Found {result.Photos.Count} photos");
+                    return JsonConvert.SerializeObject(new
+                    {
+                        success = true,
+                        photos = result.Photos,
+                        totalResults = result.TotalResults,
+                        page = result.Page,
+                        perPage = result.PerPage
+                    });
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("No photos found or result is null");
+                    return JsonConvert.SerializeObject(new
+                    {
+                        success = false,
+                        message = "Nu s-au găsit imagini pentru termenul căutat"
+                    });
+                }
+            }
+            catch (AggregateException aggEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"AggregateException in SearchPexelsImages: {aggEx.Message}");
+                var innerEx = aggEx.InnerException ?? aggEx;
+                System.Diagnostics.Debug.WriteLine($"Inner exception: {innerEx.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {innerEx.StackTrace}");
+                
+                return JsonConvert.SerializeObject(new
+                {
+                    success = false,
+                    message = $"Eroare la căutarea imaginilor: {innerEx.Message}"
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Exception in SearchPexelsImages: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                
+                return JsonConvert.SerializeObject(new
+                {
+                    success = false,
+                    message = $"Eroare la căutarea imaginilor: {ex.Message}"
+                });
+            }
+        }
+
+        [WebMethod]
+        public static string DeleteDestinatie(int destinatieId)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"DeleteDestinatie called with destinatieId: {destinatieId}");
+                var destinatieRepository = new DestinatieRepository();
+                var destinatie = destinatieRepository.GetById(destinatieId);
+
+                if (destinatie == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("Destination not found");
+                    return JsonConvert.SerializeObject(new { success = false, message = "Destinația nu a fost găsită" });
+                }
+
+                System.Diagnostics.Debug.WriteLine($"Found destination: {destinatie.Denumire}");
+
+                // Delete associated images first
+                System.Diagnostics.Debug.WriteLine("Starting to delete associated images...");
+                using (var context = new AppContext())
+                {
+                    var imaginiToDelete = context.ImaginiDestinatie
+                        .Where(i => i.Id_Destinatie == destinatieId).ToList();
+                    
+                    System.Diagnostics.Debug.WriteLine($"Found {imaginiToDelete.Count} images to delete");
+                    
+                    if (imaginiToDelete.Any())
+                    {
+                        context.ImaginiDestinatie.RemoveRange(imaginiToDelete);
+                        context.SaveChanges();
+                        System.Diagnostics.Debug.WriteLine("Images deleted successfully");
+                    }
+                }
+
+                // Delete the destination
+                System.Diagnostics.Debug.WriteLine("Deleting destination...");
+                destinatieRepository.Delete(destinatieId);
+                System.Diagnostics.Debug.WriteLine("Destination deleted successfully");
+
+                return JsonConvert.SerializeObject(new { success = true, message = "Destinația a fost ștearsă cu succes" });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DeleteDestinatie error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
                 return JsonConvert.SerializeObject(new { success = false, message = $"Eroare: {ex.Message}" });
             }
         }
