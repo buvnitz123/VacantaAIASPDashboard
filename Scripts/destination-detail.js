@@ -38,11 +38,8 @@ $(document).ready(function() {
         }
     });
 
-    // Image gallery click handler
-    $(document).on('click', '.gallery-image', function() {
-        var imageUrl = $(this).data('url');
-        showImageModal(imageUrl);
-    });
+    // Image gallery click handler - use direct binding after images are loaded
+    // This will be bound in displayImagesGallery function
 });
 
 function loadDestinationDetails(destinationId) {
@@ -116,11 +113,20 @@ function displayImagesGallery(images) {
     
     images.forEach(function(imageUrl, index) {
         var imageElement = $('<div class="gallery-item">' +
-            '<img src="' + imageUrl + '" alt="Imagine destinație ' + (index + 1) + '" class="gallery-image" data-url="' + imageUrl + '">' +
+            '<img src="' + imageUrl + '" alt="Imagine destinatie ' + (index + 1) + '" class="gallery-image" data-url="' + imageUrl + '">' +
             '<div class="image-overlay">' +
                 '<i class="fas fa-search-plus"></i>' +
             '</div>' +
         '</div>');
+        
+        // Bind click event to the entire gallery item (not just the image)
+        imageElement.click(function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var imageUrl = $(this).find('.gallery-image').data('url');
+            console.log('Gallery item clicked, URL:', imageUrl);
+            showImageModal(imageUrl);
+        });
         
         gallery.append(imageElement);
     });
@@ -142,25 +148,52 @@ function showError(message) {
 
 
 function showImageModal(imageUrl) {
+    console.log('showImageModal called with URL:', imageUrl);
+    
+    // Remove any existing modals first
+    $('.image-modal').remove();
+    
     // Create modal for image viewing
-    var modal = $('<div class="image-modal">' +
+    var modal = $('<div class="image-modal" style="display: none;">' +
         '<div class="modal-content">' +
             '<span class="close-modal">&times;</span>' +
-            '<img src="' + imageUrl + '" alt="Imagine destinație" class="modal-image">' +
+            '<img src="' + imageUrl + '" alt="Imagine destinatie" class="modal-image">' +
         '</div>' +
     '</div>');
     
     $('body').append(modal);
-    modal.show();
+    
+    // Show modal with fade effect
+    modal.fadeIn(300);
+    
+    console.log('Modal created and shown');
     
     // Close modal handlers
-    modal.find('.close-modal').click(function() {
-        modal.remove();
+    modal.find('.close-modal').click(function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('Close button clicked');
+        modal.fadeOut(300, function() {
+            modal.remove();
+        });
     });
     
     modal.click(function(e) {
         if (e.target === this) {
-            modal.remove();
+            console.log('Background clicked');
+            modal.fadeOut(300, function() {
+                modal.remove();
+            });
+        }
+    });
+    
+    // ESC key to close
+    $(document).keyup(function(e) {
+        if (e.keyCode === 27) { // ESC key
+            modal.fadeOut(300, function() {
+                modal.remove();
+            });
+            $(document).off('keyup'); // Remove this specific handler
         }
     });
 }
