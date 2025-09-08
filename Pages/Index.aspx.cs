@@ -663,5 +663,25 @@ namespace WebAdminDashboard
             }
         }
 
+        [WebMethod]
+        public static string DeleteUtilizator(int id)
+        {
+            try
+            {
+                var repo = new UtilizatorRepository();
+                var user = repo.GetById(id);
+                if (user == null)
+                    return JsonConvert.SerializeObject(new { success = false, message = "Utilizatorul nu există" });
+
+                // TODO: verifică referințe (PreferinteUtilizator, etc.) înainte de ștergere dacă e necesar
+
+                repo.Delete(id);
+                return JsonConvert.SerializeObject(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = "Eroare: " + ex.Message });
+            }
+        }
     }
 }

@@ -11,6 +11,7 @@
                 <th>Email</th>
                 <th>Telefon</th>
                 <th>Activ</th>
+                <th>Actiuni</th>
             </tr>
         </thead>
         <tbody></tbody>

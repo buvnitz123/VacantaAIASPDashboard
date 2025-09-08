@@ -293,16 +293,4 @@ $(function () {
             }
         }
     });
-
-    // Handle view button click
-    $('#tblCategorii').on('click', '.btn-action.view', function () {
-        var row = $(this).closest('tr');
-        var table = $('#tblDestinatii').DataTable();
-        var rowData = table.row(row).data();
-
-        if (rowData) {
-            previewDialog.dialog("open");
-        }
-    });
-
 });

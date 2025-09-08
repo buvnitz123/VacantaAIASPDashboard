@@ -1,281 +1,193 @@
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
-using Amazon.S3;
-using Amazon.S3.Transfer;
-using Amazon.S3.Model;
-using System.Configuration;
-using System.Web;
+using System.Linq;
+using System.Text.RegularExpressions;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 
 namespace WebAdminDashboard.Classes.Library
 {
+    // Azure Blob implementation keeping original S3Utils method signatures.
     public static class S3Utils
     {
-        private static readonly string BucketName = "vacantaai";
-        private static readonly string Region = "us-east-1";
-        
-        public static async Task<string> UploadImageAsync(byte[] imageBytes, string fileName, string contentType)
+        private static readonly Lazy<BlobContainerClient> _containerLazy =
+            new Lazy<BlobContainerClient>(InitContainer, isThreadSafe: true);
+
+        private static BlobContainerClient Container => _containerLazy.Value;
+
+        private static BlobContainerClient InitContainer()
         {
+            var conn = GetSetting("AzureBlobConnectionString");
+            var name = GetSetting("AzureBlobContainerName") ?? "images";
+            var makePublic = (GetSetting("AzureBlobPublic") ?? "true")
+                .Equals("true", StringComparison.OrdinalIgnoreCase);
+
+            if (string.IsNullOrWhiteSpace(conn))
+                throw new InvalidOperationException("AzureBlobConnectionString missing in appSettings.");
+
+            var container = new BlobContainerClient(conn, name);
+            container.CreateIfNotExists();
+
             try
             {
-                Debug.WriteLine("[S3] Creating S3 client and transfer utility...");
-                
-                // Get AWS credentials from Web.config (encrypted)
-                var accessKey = EncryptionUtils.GetDecryptedAppSetting("AWS.AccessKey");
-                var secretKey = EncryptionUtils.GetDecryptedAppSetting("AWS.SecretKey");
-                
-                Debug.WriteLine($"[S3] AWS AccessKey configured: {!string.IsNullOrEmpty(accessKey)}");
-                Debug.WriteLine($"[S3] AWS SecretKey configured: {!string.IsNullOrEmpty(secretKey)}");
-                
-                if (string.IsNullOrEmpty(accessKey) || string.IsNullOrEmpty(secretKey))
-                {
-                    throw new Exception("AWS credentials not configured in Web.config");
-                }
-                
-                // Create temp file for upload
-                var tempFilePath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-                try
-                {
-                    // Write bytes to temp file (synchonous to avoid async/await issues in older .NET versions)
-                    File.WriteAllBytes(tempFilePath, imageBytes);
-                    
-                    // Create client and transfer utility
-                    using (var s3Client = new AmazonS3Client(accessKey, secretKey, Amazon.RegionEndpoint.USEast1))
-                    using (var transferUtility = new TransferUtility(s3Client))
-                    {
-                        var uniqueFileName = GenerateUniqueFileName(fileName, "categories/");
-                        Debug.WriteLine($"[S3] Generated unique filename: {uniqueFileName}");
-                        
-                        var uploadRequest = new TransferUtilityUploadRequest
-                        {
-                            BucketName = BucketName,
-                            Key = uniqueFileName,
-                            FilePath = tempFilePath,
-                            ContentType = contentType,
-                            CannedACL = S3CannedACL.PublicRead
-                        };
-                        
-                        Debug.WriteLine("[S3] Starting upload to S3...");
-                        await transferUtility.UploadAsync(uploadRequest);
-                        Debug.WriteLine("[S3] Upload completed successfully");
-                        
-                        return $"https://{BucketName}.s3.{Region}.amazonaws.com/{uniqueFileName}";
-                    }
-                }
-                finally
-                {
-                    // Clean up temp file
-                    if (File.Exists(tempFilePath))
-                    {
-                        File.Delete(tempFilePath);
-                    }
-                }
+                var props = container.GetProperties();
+                var isPublic = props.Value.PublicAccess == PublicAccessType.Blob ||
+                               props.Value.PublicAccess == PublicAccessType.BlobContainer;
+
+                if (makePublic && !isPublic)
+                    container.SetAccessPolicy(PublicAccessType.Blob);
+                else if (!makePublic && isPublic)
+                    container.SetAccessPolicy(PublicAccessType.None);
             }
-            catch (Exception ex)
+            catch
             {
-                Debug.WriteLine($"[S3] Upload error: {ex.Message}");
-                Debug.WriteLine($"[S3] Stack trace: {ex.StackTrace}");
-                throw new Exception($"Failed to upload image to S3: {ex.Message}", ex);
+                // Swallow silently; adjust if you add logging
             }
+
+            return container;
         }
 
-        public static string UploadImage(byte[] imageBytes, string fileName, string contentType)
-        {
-            Debug.WriteLine($"[S3] Starting synchronous upload of {fileName} ({imageBytes?.Length ?? 0} bytes)");
-            
-            try
-            {
-                // Get AWS credentials from Web.config (encrypted)
-                var accessKey = EncryptionUtils.GetDecryptedAppSetting("AWS.AccessKey");
-                var secretKey = EncryptionUtils.GetDecryptedAppSetting("AWS.SecretKey");
-                
-                Debug.WriteLine($"[S3] AWS AccessKey configured: {!string.IsNullOrEmpty(accessKey)}");
-                Debug.WriteLine($"[S3] AWS SecretKey configured: {!string.IsNullOrEmpty(secretKey)}");
-                
-                if (string.IsNullOrEmpty(accessKey) || string.IsNullOrEmpty(secretKey))
-                {
-                    throw new Exception("AWS credentials not configured in Web.config");
-                }
-                
-                // Create S3 client with explicit timeout
-                var config = new AmazonS3Config
-                {
-                    RegionEndpoint = Amazon.RegionEndpoint.USEast1,
-                    Timeout = TimeSpan.FromSeconds(30),
-                    ReadWriteTimeout = TimeSpan.FromSeconds(60)
-                };
-                
-                using (var s3Client = new AmazonS3Client(accessKey, secretKey, config))
-                {
-                    var uniqueFileName = GenerateUniqueFileName(fileName, "categories/");
-                    Debug.WriteLine($"[S3] Generated unique filename: {uniqueFileName}");
-                    
-                    using (var stream = new MemoryStream(imageBytes))
-                    {
-                        var request = new PutObjectRequest
-                        {
-                            BucketName = BucketName,
-                            Key = uniqueFileName,
-                            InputStream = stream,
-                            ContentType = contentType
-                            // CannedACL a fost eliminat deoarece bucket-ul nu permite ACL-uri
-                        };
-                        
-                        Debug.WriteLine("[S3] Starting PutObject request...");
-                        var response = s3Client.PutObjectAsync(request).GetAwaiter().GetResult();
-                        Debug.WriteLine($"[S3] PutObject completed. Status: {response.HttpStatusCode}");
-                        
-                        return $"https://{BucketName}.s3.{Region}.amazonaws.com/{uniqueFileName}";
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[S3] Upload failed: {ex.Message}");
-                Debug.WriteLine($"[S3] Stack trace: {ex.StackTrace}");
-                if (ex.InnerException != null)
-                {
-                    Debug.WriteLine($"[S3] Inner exception: {ex.InnerException.Message}");
-                }
-                throw new Exception($"Failed to upload image to S3: {ex.Message}", ex);
-            }
-        }
+        private static string GetSetting(string key) =>
+            System.Configuration.ConfigurationManager.AppSettings[key];
 
-        private static string GenerateUniqueFileName(string originalFileName, string prefix = "")
+        // Accepts raw base64 or data URI
+        public static byte[] ConvertBase64ToBytes(string base64)
         {
-            var extension = Path.GetExtension(originalFileName);
-            var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
-            var guid = Guid.NewGuid().ToString("N").Substring(0, 8);
-            return $"{prefix}{timestamp}_{guid}{extension}";
-        }
+            if (string.IsNullOrWhiteSpace(base64)) return null;
 
-        public static bool DeleteImage(string imageUrl)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(imageUrl))
-                    return true;
-                    
-                var key = ExtractKeyFromUrl(imageUrl);
-                if (string.IsNullOrEmpty(key))
-                    return false;
+            var comma = base64.IndexOf(',');
+            if (comma >= 0)
+                base64 = base64.Substring(comma + 1);
 
-                Debug.WriteLine($"[S3] Deleting image with key: {key}");
-                var accessKey = EncryptionUtils.GetDecryptedAppSetting("AWS.AccessKey");
-                var secretKey = EncryptionUtils.GetDecryptedAppSetting("AWS.SecretKey");
-                
-                using (var s3Client = new AmazonS3Client(accessKey, secretKey, Amazon.RegionEndpoint.USEast1))
-                using (var transferUtility = new TransferUtility(s3Client))
-                {
-                    var request = new TransferUtilityOpenStreamRequest
-                    {
-                        BucketName = BucketName,
-                        Key = key
-                    };
-                    
-                    // Check if file exists before attempting to delete
-                    try
-                    {
-                        using (transferUtility.OpenStream(request))
-                        {
-                            // File exists, proceed with delete
-                        }
-                    }
-                    catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    {
-                        Debug.WriteLine($"[S3] File not found: {key}");
-                        return false;
-                    }
-                    
-                    // Delete the file
-                    transferUtility.S3Client.DeleteObjectAsync(BucketName, key).Wait();
-                    Debug.WriteLine($"[S3] Successfully deleted: {key}");
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[S3] Delete image failed: {ex}");
-                return false;
-            }
-        }
-
-        public static byte[] ConvertBase64ToBytes(string base64String)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(base64String))
-                    return null;
-                    
-                // Remove data URI scheme if present
-                var base64Data = base64String.Contains("base64,") 
-                    ? base64String.Split(',')[1] 
-                    : base64String;
-                    
-                return Convert.FromBase64String(base64Data);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[S3] Base64 conversion failed: {ex}");
-                return null;
-            }
+            try { return Convert.FromBase64String(base64); }
+            catch { return null; }
         }
 
         public static string GetContentTypeFromFileName(string fileName)
         {
-            var extension = Path.GetExtension(fileName)?.ToLowerInvariant();
-            
-            switch (extension)
+            if (string.IsNullOrWhiteSpace(fileName)) return "application/octet-stream";
+            switch (Path.GetExtension(fileName).ToLowerInvariant())
             {
                 case ".jpg":
-                case ".jpeg":
-                    return "image/jpeg";
-                case ".png":
-                    return "image/png";
-                case ".gif":
-                    return "image/gif";
-                case ".bmp":
-                    return "image/bmp";
-                case ".webp":
-                    return "image/webp";
-                default:
-                    return "application/octet-stream";
+                case ".jpeg": return "image/jpeg";
+                case ".png": return "image/png";
+                case ".gif": return "image/gif";
+                case ".webp": return "image/webp";
+                default: return "application/octet-stream";
             }
         }
 
         public static bool IsValidImageType(string contentType)
         {
-            if (string.IsNullOrEmpty(contentType))
-                return false;
-                
-            var validTypes = new[] { "image/jpeg", "image/png", "image/gif", "image/bmp", "image/webp" };
-            var lowerContentType = contentType.ToLowerInvariant();
-            
-            foreach (var type in validTypes)
-            {
-                if (string.Equals(type, lowerContentType, StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
-            
-            return false;
+            if (string.IsNullOrWhiteSpace(contentType)) return false;
+            var allowed = new[] { "image/jpeg", "image/png", "image/gif", "image/webp" };
+            return allowed.Contains(contentType.ToLowerInvariant());
         }
 
-        private static string ExtractKeyFromUrl(string imageUrl)
+        public static string UploadImage(byte[] data, string fileName, string contentType)
         {
-            if (string.IsNullOrEmpty(imageUrl))
-                return null;
-                
+            if (data == null || data.Length == 0) return null;
+
+            var blobName = SanitizeBlobName(fileName);
+            var blob = Container.GetBlobClient(blobName);
+
+            contentType = string.IsNullOrWhiteSpace(contentType)
+                ? GetContentTypeFromFileName(fileName)
+                : contentType;
+
+            using (var ms = new MemoryStream(data, writable: false))
+            {
+                blob.Upload(ms, new BlobUploadOptions
+                {
+                    HttpHeaders = new BlobHttpHeaders
+                    {
+                        ContentType = contentType,
+                        CacheControl = "public, max-age=31536000"
+                    }
+                });
+            }
+
+            // If container private, return a short SAS so UI still works
+            if (!IsContainerPublic())
+                return GetReadSasUrl(blob, TimeSpan.FromHours(1));
+
+            return blob.Uri.ToString();
+        }
+
+        public static void DeleteImage(string imageUrl)
+        {
+            if (string.IsNullOrWhiteSpace(imageUrl)) return;
+
             try
             {
-                var uri = new Uri(imageUrl);
-                // Remove the leading slash if present
-                return uri.AbsolutePath.TrimStart('/');
+                var baseUri = Container.Uri.ToString().TrimEnd('/');
+                if (!imageUrl.StartsWith(baseUri, StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                var relative = imageUrl.Substring(baseUri.Length).TrimStart('/');
+                var q = relative.IndexOf('?');
+                if (q >= 0) relative = relative.Substring(0, q);
+
+                var blob = Container.GetBlobClient(relative);
+                blob.DeleteIfExists(DeleteSnapshotsOption.IncludeSnapshots);
             }
             catch
             {
-                return null;
+                // Silent; optionally log
             }
+        }
+
+        private static bool IsContainerPublic()
+        {
+            try
+            {
+                var props = Container.GetProperties();
+                return props.Value.PublicAccess == PublicAccessType.Blob ||
+                       props.Value.PublicAccess == PublicAccessType.BlobContainer;
+            }
+            catch { return false; }
+        }
+
+        private static string GetReadSasUrl(BlobClient blob, TimeSpan life)
+        {
+            if (!blob.CanGenerateSasUri) return blob.Uri.ToString();
+
+            var builder = new BlobSasBuilder
+            {
+                BlobContainerName = blob.BlobContainerName,
+                BlobName = blob.Name,
+                Resource = "b",
+                ExpiresOn = DateTimeOffset.UtcNow.Add(life)
+            };
+            builder.SetPermissions(BlobSasPermissions.Read);
+
+            return blob.GenerateSasUri(builder).ToString();
+        }
+
+        private static string SanitizeBlobName(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw))
+                raw = Guid.NewGuid().ToString("N");
+
+            raw = raw.Replace('\\', '/').TrimStart('/');
+
+            var parts = raw
+                .Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(SanitizeSegment);
+
+            return string.Join("/", parts);
+        }
+
+        private static string SanitizeSegment(string segment)
+        {
+            if (segment.Length > 255)
+                segment = segment.Substring(0, 255);
+
+            segment = Regex.Replace(segment, @"[^a-zA-Z0-9_\-\.]", "_");
+            return string.IsNullOrWhiteSpace(segment)
+                ? Guid.NewGuid().ToString("N")
+                : segment;
         }
     }
 }

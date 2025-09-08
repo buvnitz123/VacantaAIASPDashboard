@@ -29,6 +29,7 @@
     <script src="/Scripts/categorie-vacanta.js"></script>
     <script src="/Scripts/facilitate.js?v=13"></script>
     <script src="/Scripts/destinatie.js?v=3"></script>
+    <script src="/Scripts/user-detail.js"></script>
 </head>
 <body>
 

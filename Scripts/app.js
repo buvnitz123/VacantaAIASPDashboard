@@ -117,6 +117,8 @@
                 dataSrc: function (json) {
                     var data = [];
                     try { data = JSON.parse(json.d); } catch (e) { }
+                    // Optional: mascare parola la sursă dacă tot apare
+                    data.forEach(function(u){ if (u.Parola) u.Parola = '***'; });
                     return data;
                 }
             },
@@ -126,9 +128,85 @@
                 { data: 'Prenume' },
                 { data: 'Email' },
                 { data: 'Telefon' },
-                { data: 'EsteActiv' }
+                { 
+                    data: 'EsteActiv',
+                    render: function(val){ return val === 1 ? 'Da' : 'Nu'; }
+                },
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    render: function(row){
+                        return "<div class='action-buttons'>" +
+                               "<button class='btn-action view-user' title='Detalii' data-id='" + row.Id_Utilizator + "'><i class='fas fa-eye'></i></button>" +
+                               "<button class='btn-action delete-user' title='Șterge' data-id='" + row.Id_Utilizator + "' data-name='" + row.Nume + " " + row.Prenume + "'><i class='fas fa-trash'></i></button>" +
+                               "</div>";
+                    }
+                }
             ]
         });
+
+        // Navigare către pagina de detalii
+        $('#tblUtilizatori tbody')
+            .off('click', '.view-user')
+            .on('click', '.view-user', function(e){
+                e.preventDefault();
+                var id = $(this).data('id');
+                if (!id) return;
+                window.location.href = 'UserDetail.aspx?id=' + encodeURIComponent(id);
+            });
+
+        // Dialog de ștergere (lazy create)
+        var deleteDialog = $("#dialog-delete-utilizator");
+        if (!deleteDialog.length) {
+            $('body').append(
+                "<div id='dialog-delete-utilizator' title='Confirmare ștergere' style='display:none;'>" +
+                "<p class='delete-message'><span class='ui-icon ui-icon-alert' style='float:left;margin:12px 12px 20px 0;'></span>" +
+                "Sigur doriți să ștergeți utilizatorul <strong><span id='delete-utilizator-name'></span></strong>?</p>" +
+                "<p class='delete-warning'><em>Această acțiune este ireversibilă.</em></p>" +
+                "</div>"
+            );
+            deleteDialog = $("#dialog-delete-utilizator");
+        }
+
+        $('#tblUtilizatori tbody')
+            .off('click', '.delete-user')
+            .on('click', '.delete-user', function(e){
+                e.preventDefault();
+                var id = $(this).data('id');
+                var name = $(this).data('name');
+                $("#delete-utilizator-name").text(name);
+
+                deleteDialog.dialog({
+                    modal: true,
+                    width: 400,
+                    buttons: {
+                        "Șterge": function(){
+                            var dlg = $(this);
+                            $.ajax({
+                                type: "POST",
+                                url: "Index.aspx/DeleteUtilizator",
+                                data: JSON.stringify({ id: id }),
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json"
+                            }).done(function(resp){
+                                var r = JSON.parse(resp.d);
+                                if (r.success) {
+                                    $('#tblUtilizatori').DataTable().ajax.reload();
+                            } else {
+                                alert(r.message || 'Eroare la ștergere.');
+                            }
+                        }).fail(function(){
+                            alert('Eroare la comunicare server.');
+                        }).always(function(){
+                            dlg.dialog('close');
+                        });
+                        },
+                        "Anulează": function(){ $(this).dialog('close'); }
+                    }
+                });
+            });
+
         utilizatoriInited = true;
     }
 
@@ -152,8 +230,11 @@
                 { data: 'Denumire' },
                 {
                     data: 'ImagineUrl',
-                    render: function (data, type, row) {
-                        return data ? "<button class='btn-action view' title='Vizualizare imagine' data-image='" + data + "'><i class='fas fa-search'></i></button>" : "";
+                    orderable: false,
+                    render: function (data) {
+                        return data
+                            ? "<button class='btn-action view' title='Vizualizare imagine' data-image='" + data + "'><i class='fas fa-search'></i></button>"
+                            : "";
                     }
                 },
                 {
@@ -170,39 +251,33 @@
             ]
         });
         
-        // Add view functionality for categories
-        $(document).on('click', '.btn-action.view', function(e) {
+        // View image (ONLY for categories). Stop propagation so destination handler not triggered.
+        $('#tblCategorii tbody').on('click', '.btn-action.view', function (e) {
             e.preventDefault();
+            e.stopPropagation();
             var imageUrl = $(this).data('image');
-            if (imageUrl) {
-                $('#preview-img').attr('src', imageUrl);
-                $('#dialog-preview-categorie').dialog({
-                    modal: true,
-                    width: 'auto',
-                    maxWidth: '90%',
-                    height: 'auto',
-                    maxHeight: '90vh',
-                    buttons: {
-                        "Închide": function() {
-                            $(this).dialog("close");
-                        }
-                    }
-                });
-            }
+            if (!imageUrl) return;
+            $('#preview-img').attr('src', imageUrl);
+            $('#dialog-preview-categorie').dialog({
+                modal: true,
+                width: 'auto',
+                maxWidth: '90%',
+                height: 'auto',
+                maxHeight: '90vh',
+                buttons: { "Închide": function () { $(this).dialog('close'); } }
+            });
         });
 
-        // Add delete functionality for categories
+        // Delete category
         $(document).on('click', '.btn-action.delete', function(e) {
+            if (!$(this).closest('table').is('#tblCategorii')) return; // ensure category table
             e.preventDefault();
             var categorieId = $(this).data('id');
             var categorieName = $(this).data('name');
             var deleteButton = $(this);
             var row = $(this).closest('tr');
             var table = $('#tblCategorii').DataTable();
-            
-            // Show confirmation dialog
             $("#delete-categorie-name").text(categorieName);
-            
             var deleteDialog = $("#dialog-delete-categorie").dialog({
                 resizable: false,
                 height: "auto",
@@ -213,7 +288,6 @@
                         var originalContent = deleteButton.html();
                         deleteButton.html('<i class="fas fa-spinner fa-spin"></i>');
                         deleteButton.prop('disabled', true);
-                        
                         $.ajax({
                             type: "POST",
                             url: "Index.aspx/DeleteCategorieVacanta",
@@ -224,30 +298,19 @@
                                 var result = JSON.parse(response.d);
                                 if (result.success) {
                                     table.row(row).remove().draw(false);
-                                    updateTips('Categoria a fost ștearsă cu succes!');
                                 } else {
-                                    updateTips('Eroare: ' + result.message);
                                     deleteButton.html(originalContent);
                                     deleteButton.prop('disabled', false);
                                 }
                             },
-                            error: function(xhr, status, error) {
-                                updateTips('Eroare la ștergerea categoriei: ' + error);
-                                deleteButton.html(originalContent);
-                                deleteButton.prop('disabled', false);
-                            },
-                            complete: function() {
-                                deleteDialog.dialog("close");
-                            }
+                            complete: function() { deleteDialog.dialog("close"); }
                         });
                     },
-                    "Anulează": function() {
-                        $(this).dialog("close");
-                    }
+                    "Anulează": function() { $(this).dialog("close"); }
                 }
             });
         });
-        
+
         categoriiInited = true;
     }
 
@@ -277,69 +340,62 @@
                     searchable: false,
                     render: function (data, type, row) {
                         return "<div class='action-buttons'>" +
-                               "<button class='btn-action view' title='Accesare' data-id='" + row.Id_Destinatie + "'><i class='fas fa-eye'></i></button>" +
-                               "<button class='btn-action delete' title='Sterge' data-id='" + row.Id_Destinatie + "' data-name='" + row.Denumire + "'><i class='fas fa-trash'></i></button>" +
+                               "<button class='btn-action view view-destination' title='Detalii' data-id='" + row.Id_Destinatie + "'><i class='fas fa-eye'></i></button>" +
+                               "<button class='btn-action delete delete-destination' title='Șterge' data-id='" + row.Id_Destinatie + "' data-name='" + row.Denumire + "'><i class='fas fa-trash'></i></button>" +
                                "</div>";
                     }
                 }
-            ]
+            ]       
         });
 
-        // Add view functionality for destinations
-        $(document).on('click', '.btn-action.view', function (e) {
-            e.preventDefault();
-            var destinationId = $(this).data('id');
-            console.log('View destination clicked:', destinationId);
-            
-            // Navigate to destination detail page
-            window.location.href = 'DestinationDetail.aspx?id=' + destinationId;
-        });
+        // Destination view handler with unique class
+        $('#tblDestinatii tbody')
+          .off('click', '.view-destination')
+          .on('click', '.view-destination', function (e) {
+              e.preventDefault();
+              var destinationId = $(this).data('id');
+              if (!destinationId || isNaN(destinationId)) return;
+              window.location.href = 'DestinationDetail.aspx?id=' + encodeURIComponent(destinationId);
+          });
 
-        // Add delete functionality for destinations
-        $(document).on('click', '.btn-action.delete', function (e) {
-            e.preventDefault();
-            var destinatieId = $(this).data('id');
-            var destinatieName = $(this).data('name');
-            
-            // Show confirmation dialog
-            $("#delete-destinatie-name").text(destinatieName);
-            $("#dialog-delete-destinatie").dialog({
-                resizable: false,
-                height: "auto",
-                width: 400,
-                modal: true,
-                buttons: {
-                    "Sterge": function () {
-                        var dialogRef = $(this);
-                        $.ajax({
-                            type: "POST",
-                            url: "Index.aspx/DeleteDestinatie",
-                            data: JSON.stringify({ destinatieId: destinatieId }),
-                            contentType: "application/json; charset=utf-8",
-                            dataType: "json",
-                            success: function (response) {
-                                console.log("Delete response:", response);
-                                var result = JSON.parse(response.d);
-                                console.log("Parsed delete response:", result);
-                                
-                                if (result && result.success) {
-                                    $('#tblDestinatii').DataTable().ajax.reload();
-                                    dialogRef.dialog("close");
-                                } else {
-                                    alert("Eroare la stergerea destinatiei: " + (result ? result.message : "Eroare necunoscuta"));
-                                }
-                            },
-                            error: function () {
-                                alert("A aparut o eroare la stergerea destinatiei.");
-                            }
-                        });
-                    },
-                    "Anuleaza": function () {
-                        $(this).dialog("close");
-                    }
-                }
-            });
-        });
+        // Delete destination
+        $('#tblDestinatii tbody')
+          .off('click', '.delete-destination')
+          .on('click', '.delete-destination', function (e) {
+              e.preventDefault();
+              var destinatieId = $(this).data('id');
+              var destinatieName = $(this).data('name');
+              $("#delete-destinatie-name").text(destinatieName);
+              $("#dialog-delete-destinatie").dialog({
+                  resizable: false,
+                  height: "auto",
+                  width: 400,
+                  modal: true,
+                  buttons: {
+                      "Șterge": function () {
+                          var dialogRef = $(this);
+                          $.ajax({
+                              type: "POST",
+                              url: "Index.aspx/DeleteDestinatie",
+                              data: JSON.stringify({ destinatieId: destinatieId }),
+                              contentType: "application/json; charset=utf-8",
+                              dataType: "json",
+                              success: function (response) {
+                                  var result = JSON.parse(response.d);
+                                  if (result && result.success) {
+                                      $('#tblDestinatii').DataTable().ajax.reload();
+                                      dialogRef.dialog("close");
+                                  } else {
+                                      alert("Eroare: " + (result ? result.message : 'necunoscută'));
+                                  }
+                              },
+                              error: function () { alert("A apărut o eroare la ștergere."); }
+                          });
+                      },
+                      "Anulează": function () { $(this).dialog("close"); }
+                  }
+              });
+          });
 
         destinatiiInited = true;
     }
@@ -360,85 +416,16 @@
                 }
             },
             columns: [
-                { 
-                    data: 'Id_Facilitate',
-                    className: 'dt-left',
-                },
-                { 
-                    data: 'Denumire',
-                    className: 'dt-left'
-                },
-                { 
-                    data: 'Descriere',
-                    className: 'descriere-cell',
-                    render: function(data, type, row) {
-                        if (type === 'display' && data) {
-                            const previewText = data.length > 10 ? data.substring(0, 10) + '...' : data;
-                            return `
-                                <div class="descriere-content">
-                                    <button class="btn-action view-descriere" title="Vizualizează descrierea" data-descriere="${data}">
-                                        <i class="fas fa-search"></i>
-                                    </button>
-                                    <span class="desc-preview">${previewText}</span>
-                                </div>
-                            `;
-                        }
-                        return '';
-                    }
-                },
-                {
-                    data: null,
-                    orderable: false,
-                    className: 'dt-left',
-                    render: function(data, type, row) {
-                        return `
-                            <div class="action-buttons">
-                                <button class="btn-action edit" title="Editează" data-id="${row.Id_Facilitate}">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn-action delete" title="Șterge" data-id="${row.Id_Facilitate}" data-denumire="${row.Denumire}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
-                        `;
-                    }
-                }
+                { data: 'Id_Facilitate', className: 'dt-left' },
+                { data: 'Denumire', className: 'dt-left' },
+                { data: 'Descriere', className: 'descriere-cell', render: function(data, type) { if (type === 'display' && data) { const previewText = data.length > 10 ? data.substring(0, 10) + '...' : data; return "<div class='descriere-content'><button class='btn-action view-descriere' title='Vizualizează descrierea' data-descriere='" + data + "'><i class='fas fa-search'></i></button><span class='desc-preview'>" + previewText + "</span></div>"; } return ''; } },
+                { data: null, orderable: false, className: 'dt-left', render: function(row){ return "<div class='action-buttons'><button class='btn-action edit' title='Editează' data-id='" + row.Id_Facilitate + "'><i class='fas fa-edit'></i></button><button class='btn-action delete' title='Șterge' data-id='" + row.Id_Facilitate + "' data-denumire='" + row.Denumire + "'><i class='fas fa-trash'></i></button></div>"; } }
             ]
         });
 
-        $('#tblFacilitati tbody').on('click', '.btn-action.edit', function() {
-            var id = $(this).data('id');
-            editFacilitate(id);
-        });
-        
-        // Handle view description button click
-        $('#tblFacilitati tbody').on('click', '.btn-action.view-descriere', function(e) {
-            e.stopPropagation();
-            var descriere = $(this).data('descriere');
-            if (descriere) {
-                // Show description in a simple dialog
-                $('<div>')
-                    .html('<p style="max-width: 400px; max-height: 300px; overflow: auto; white-space: pre-wrap;">' + descriere + '</p>')
-                    .dialog({
-                        title: 'Descriere',
-                        width: 550,
-                        modal: true,
-                        buttons: {
-                            'Închide': function() {
-                                $(this).dialog('close');
-                            }
-                        }
-                    });
-            }
-        });
-
-        $('#tblFacilitati tbody').on('click', '.btn-action.delete', function() {
-            var $button = $(this);
-            var id = $button.data('id');
-            var denumire = $button.data('denumire');
-
-            confirmDeleteFacilitate(id, denumire);
-        });
+        $('#tblFacilitati tbody').on('click', '.btn-action.edit', function() { var id = $(this).data('id'); editFacilitate(id); });
+        $('#tblFacilitati tbody').on('click', '.btn-action.view-descriere', function(e) { e.stopPropagation(); var descriere = $(this).data('descriere'); if (descriere) { $('<div>').html('<p style="max-width: 400px; max-height: 300px; overflow: auto; white-space: pre-wrap;">' + descriere + '</p>').dialog({ title: 'Descriere', width: 550, modal: true, buttons: { 'Închide': function() { $(this).dialog('close'); } } }); } });
+        $('#tblFacilitati tbody').on('click', '.btn-action.delete', function() { var $button = $(this); var id = $button.data('id'); var denumire = $button.data('denumire'); confirmDeleteFacilitate(id, denumire); });
 
         facilitatiInited = true;
     }
