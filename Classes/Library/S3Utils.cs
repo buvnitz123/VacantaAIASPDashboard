@@ -18,8 +18,8 @@ namespace WebAdminDashboard.Classes.Library
 
         private static BlobContainerClient InitContainer()
         {
-            var conn = GetSetting("AzureBlobConnectionString");
-            var name = GetSetting("AzureBlobContainerName") ?? "images";
+            var conn = EncryptionUtils.Decrypt(GetSetting("AzureBlobConnectionString"));
+            var name = GetSetting("AzureBlobContainerName");
             var makePublic = (GetSetting("AzureBlobPublic") ?? "true")
                 .Equals("true", StringComparison.OrdinalIgnoreCase);
 
