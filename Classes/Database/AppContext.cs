@@ -31,6 +31,22 @@ namespace WebAdminDashboard.Classes.Database
                 .Property(p => p.Id_PunctDeInteres)
                 .HasDatabaseGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None);
 
+            // Configure composite key for ImaginiPunctDeInteres
+            modelBuilder.Entity<ImaginiPunctDeInteres>()
+                .HasKey(i => new { i.Id_PunctDeInteres, i.Id_ImaginiPunctDeInteres });
+
+            modelBuilder.Entity<ImaginiPunctDeInteres>()
+                .Property(i => i.Id_ImaginiPunctDeInteres)
+                .HasDatabaseGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None);
+
+            // Configure composite key for ImaginiDestinatie if not already done
+            modelBuilder.Entity<ImaginiDestinatie>()
+                .HasKey(i => new { i.Id_Destinatie, i.Id_ImaginiDestinatie });
+
+            modelBuilder.Entity<ImaginiDestinatie>()
+                .Property(i => i.Id_ImaginiDestinatie)
+                .HasDatabaseGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None);
+
             base.OnModelCreating(modelBuilder);
         }
 

@@ -567,7 +567,7 @@ function initPuncteInteresManagement() {
 }
 
 function loadPunctDetailsWithImages(punctId) {
-    // Load basic details first
+    // Load basic details and saved images
     $.ajax({
         type: "POST",
         url: "DestinationDetail.aspx/GetPunctDeInteresById",
@@ -593,15 +593,34 @@ function loadPunctDetailsWithImages(punctId) {
                              "<div class='detail-row description'><strong>Descriere:</strong><br>" + (result.Descriere || '-') + "</div>" +
                              "</div>" +
                              "<div class='detail-section'>" +
-                             "<h3>Imagini <i class='fas fa-spinner fa-spin'></i></h3>" +
-                             "<div id='punct-images-container'>Se incarca imaginile...</div>" +
-                             "</div>" +
-                             "</div>";
+                             "<h3>Imagini asociate</h3>" +
+                             "<div id='punct-images-container'>";
                              
+                // Check if we have saved images
+                if (result.Images && result.Images.length > 0) {
+                    console.log(`Displaying ${result.Images.length} saved images`);
+                    content += "<div class='punct-images-gallery'>";
+                    
+                    result.Images.forEach(function(image, index) {
+                        content += "<div class='punct-gallery-item'>" +
+                                 "<img src='" + image.ImagineUrl + "' alt='Imagine " + (index + 1) + "' class='punct-gallery-image' onclick='showImageModal(\"" + image.ImagineUrl + "\")'>" +
+                                 "<div class='image-credit'>Imagine salvată în baza de date</div>" +
+                                 "</div>";
+                    });
+                    
+                    content += "</div>";
+                } else {
+                    // No saved images, search for new ones
+                    content += "<div class='no-saved-images'><i class='fas fa-spinner fa-spin'></i> Nu există imagini salvate. Se caută imagini noi...</div>";
+                }
+                
+                content += "</div></div></div>";
                 $("#view-punct-content").html(content);
                 
-                // Search for images using Pexels
-                searchPexelsForPunct(result.Denumire, result.Tip);
+                // If no saved images, search using Pexels as fallback
+                if (!result.Images || result.Images.length === 0) {
+                    searchPexelsForPunct(result.Denumire, result.Tip);
+                }
             } else {
                 $("#view-punct-content").html('<div class="error-punct">Nu s-au putut incarca detaliile punctului de interes</div>');
             }
@@ -648,20 +667,19 @@ function displayPunctImages(photos) {
     photos.forEach(function(photo, index) {
         imagesHtml += "<div class='punct-gallery-item'>" +
                      "<img src='" + photo.Src.Medium + "' alt='Imagine " + (index + 1) + "' class='punct-gallery-image' onclick='showImageModal(\"" + photo.Src.Original + "\")'>" +
-                     "<div class='image-credit'>Foto: " + photo.Photographer + "</div>" +
+                     "<div class='image-credit'>Foto din căutare: " + photo.Photographer + "</div>" +
                      "</div>";
     });
     
     imagesHtml += "</div>";
+    imagesHtml += "<div class='search-note'><i class='fas fa-info-circle'></i> Acestea sunt imagini de căutare. Imaginile se salvează automat când adaugi un punct de interes.</div>";
     
     // Update the container with images
     $("#punct-images-container").html(imagesHtml);
-    $(".detail-section h3").html("Imagini <i class='fas fa-images'></i>");
 }
 
 function displayNoImages() {
-    $("#punct-images-container").html('<div class="no-images">Nu s-au gasit imagini pentru acest punct de interes</div>');
-    $(".detail-section h3").html("Imagini <i class='fas fa-exclamation-triangle'></i>");
+    $("#punct-images-container").html('<div class="no-images"><i class="fas fa-exclamation-triangle"></i> Nu s-au gasit imagini pentru acest punct de interes</div>');
 }
 
 function showImageModal(imageUrl) {

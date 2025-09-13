@@ -165,6 +165,47 @@ namespace WebAdminDashboard
                     repository.Insert(punct);
                     System.Diagnostics.Debug.WriteLine($"Punct de interes added successfully with ID: {punct.Id_PunctDeInteres}");
 
+                    // Search and save images using Pexels API
+                    try
+                    {
+                        var searchQuery = $"{denumire} {tip}";
+                        System.Diagnostics.Debug.WriteLine($"Searching images for query: {searchQuery}");
+                        
+                        var photoResult = Classes.Library.PhotoAPIUtils.SearchPhotos(searchQuery, 3, 1);
+                        
+                        if (photoResult != null && photoResult.Photos != null && photoResult.Photos.Count > 0)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Found {photoResult.Photos.Count} photos for punct de interes");
+                            
+                            using (var imaginiRepository = new ImaginiPunctDeInteresRepository())
+                            {
+                                for (int i = 0; i < photoResult.Photos.Count; i++)
+                                {
+                                    var photo = photoResult.Photos[i];
+                                    
+                                    var imagineRecord = new ImaginiPunctDeInteres
+                                    {
+                                        Id_PunctDeInteres = (int)punctId,
+                                        Id_ImaginiPunctDeInteres = 0, // Va fi generat automat de repository
+                                        ImagineUrl = photo.Src.Original
+                                    };
+                                    
+                                    imaginiRepository.Insert(imagineRecord);
+                                    System.Diagnostics.Debug.WriteLine($"Image {i + 1} saved for punct {punctId}: {photo.Src.Original}");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            System.Diagnostics.Debug.WriteLine("No images found for punct de interes");
+                        }
+                    }
+                    catch (Exception imgEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error searching/saving images: {imgEx.Message}");
+                        // Don't fail the entire operation if image search fails
+                    }
+
                     return JsonConvert.SerializeObject(new { success = true, id = punct.Id_PunctDeInteres });
                 }
             }
@@ -191,16 +232,27 @@ namespace WebAdminDashboard
                         return JsonConvert.SerializeObject(new { success = false, message = "Punctul de interes nu a fost găsit" });
                     }
 
-                    var result = new
+                    // Get associated images
+                    using (var imaginiRepository = new ImaginiPunctDeInteresRepository())
                     {
-                        Id_PunctDeInteres = punct.Id_PunctDeInteres,
-                        Denumire = punct.Denumire ?? "",
-                        Descriere = punct.Descriere ?? "",
-                        Tip = punct.Tip ?? "",
-                        Id_Destinatie = punct.Id_Destinatie
-                    };
+                        var imagini = imaginiRepository.GetByPunctDeInteres(id);
 
-                    return JsonConvert.SerializeObject(result);
+                        var result = new
+                        {
+                            Id_PunctDeInteres = punct.Id_PunctDeInteres,
+                            Denumire = punct.Denumire ?? "",
+                            Descriere = punct.Descriere ?? "",
+                            Tip = punct.Tip ?? "",
+                            Id_Destinatie = punct.Id_Destinatie,
+                            Images = imagini.Select(img => new
+                            {
+                                Id = img.Id_ImaginiPunctDeInteres,
+                                ImagineUrl = img.ImagineUrl
+                            }).ToList()
+                        };
+
+                        return JsonConvert.SerializeObject(result);
+                    }
                 }
             }
             catch (Exception ex)
@@ -237,12 +289,60 @@ namespace WebAdminDashboard
                         return JsonConvert.SerializeObject(new { success = false, message = "Punctul de interes nu a fost găsit" });
                     }
 
+                    // Check if denumire or tip changed (significant changes that might require new images)
+                    bool shouldUpdateImages = !punct.Denumire.Equals(denumire.Trim(), StringComparison.OrdinalIgnoreCase) || 
+                                            !punct.Tip.Equals(tip.Trim(), StringComparison.OrdinalIgnoreCase);
+
                     punct.Denumire = denumire.Trim();
                     punct.Tip = tip.Trim();
                     punct.Descriere = !string.IsNullOrWhiteSpace(descriere) ? descriere.Trim() : null;
                     
                     repository.Update(punct);
                     System.Diagnostics.Debug.WriteLine($"Punct de interes updated successfully with id: {id}");
+
+                    // If name or type changed significantly, update images
+                    if (shouldUpdateImages)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Significant changes detected, updating images for punct {id}");
+                        
+                        try
+                        {
+                            // Delete existing images and add new ones
+                            using (var imaginiRepository = new ImaginiPunctDeInteresRepository())
+                            {
+                                // Delete all existing images for this punct
+                                imaginiRepository.DeleteAllByPunctDeInteres(id);
+                                System.Diagnostics.Debug.WriteLine($"Deleted existing images for punct {id}");
+                                
+                                // Search and add new images
+                                var searchQuery = $"{denumire} {tip}";
+                                var photoResult = Classes.Library.PhotoAPIUtils.SearchPhotos(searchQuery, 3, 1);
+                                
+                                if (photoResult != null && photoResult.Photos != null && photoResult.Photos.Count > 0)
+                                {
+                                    for (int i = 0; i < photoResult.Photos.Count; i++)
+                                    {
+                                        var photo = photoResult.Photos[i];
+                                        
+                                        var imagineRecord = new ImaginiPunctDeInteres
+                                        {
+                                            Id_PunctDeInteres = id,
+                                            Id_ImaginiPunctDeInteres = 0, // Va fi generat automat
+                                            ImagineUrl = photo.Src.Original
+                                        };
+                                        
+                                        imaginiRepository.Insert(imagineRecord);
+                                        System.Diagnostics.Debug.WriteLine($"New image {i + 1} saved for updated punct {id}");
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception imgEx)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Error updating images: {imgEx.Message}");
+                            // Don't fail the entire operation if image update fails
+                        }
+                    }
 
                     return JsonConvert.SerializeObject(new { success = true });
                 }
@@ -271,8 +371,14 @@ namespace WebAdminDashboard
                         return JsonConvert.SerializeObject(new { success = false, message = "Punctul de interes nu a fost găsit" });
                     }
 
-                    // TODO: Check for any related records (imagini, etc.) before deleting
+                    // First, delete all associated images in cascade
+                    using (var imaginiRepository = new ImaginiPunctDeInteresRepository())
+                    {
+                        imaginiRepository.DeleteAllByPunctDeInteres(id);
+                        System.Diagnostics.Debug.WriteLine($"Deleted all images for punct {id}");
+                    }
                     
+                    // Then delete the punct de interes itself
                     repository.Delete(id);
                     System.Diagnostics.Debug.WriteLine($"Punct de interes deleted successfully with id: {id}");
                     

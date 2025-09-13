@@ -223,7 +223,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="API_SETUP_GUIDE.md" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

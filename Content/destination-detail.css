@@ -710,23 +710,173 @@
     line-height: 1.4;
 }
 
-/* Responsive design */
+/* PUNCT DE INTERES IMAGE GALLERIES */
+.punct-details-full {
+    padding: 20px;
+}
+
+.detail-section {
+    margin-bottom: 25px;
+}
+
+.detail-section h3 {
+    color: #333;
+    font-size: 18px;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #007bff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detail-row {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.detail-row strong {
+    min-width: 100px;
+    color: #555;
+    font-weight: 600;
+}
+
+.detail-row.description {
+    flex-direction: column;
+}
+
+.detail-row.description strong {
+    margin-bottom: 8px;
+}
+
+.punct-images-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.punct-gallery-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.punct-gallery-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+
+.punct-gallery-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.punct-gallery-image:hover {
+    opacity: 0.9;
+}
+
+.image-credit {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    color: white;
+    font-size: 11px;
+    padding: 15px 8px 8px;
+    text-align: center;
+}
+
+.no-saved-images {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 30px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #dee2e6;
+}
+
+.no-saved-images i {
+    margin-right: 8px;
+    color: #007bff;
+}
+
+.no-images {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 30px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #dee2e6;
+}
+
+.no-images i {
+    margin-right: 8px;
+    color: #dc3545;
+}
+
+.search-note {
+    margin-top: 15px;
+    padding: 10px;
+    background: #e3f2fd;
+    border: 1px solid #bbdefb;
+    border-radius: 4px;
+    color: #1565c0;
+    font-size: 13px;
+    text-align: center;
+}
+
+.search-note i {
+    margin-right: 6px;
+}
+
+.loading-punct {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.loading-punct i {
+    font-size: 20px;
+    color: #007bff;
+    margin-right: 8px;
+}
+
+.error-punct {
+    text-align: center;
+    padding: 30px;
+    color: #dc3545;
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 6px;
+}
+
+/* Responsive pentru puncte de interes images */
 @media (max-width: 768px) {
-    .detail-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .detail-header {
-        flex-direction: column;
-        align-items: flex-start;
+    .punct-images-gallery {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 10px;
     }
     
-    .images-gallery {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    .punct-gallery-image {
+        height: 120px;
     }
     
-    .destination-detail-container {
-        padding: 15px;
+    .detail-row {
+        flex-direction: column;
+    }
+    
+    .detail-row strong {
+        min-width: auto;
+        margin-bottom: 4px;
     }
 }
