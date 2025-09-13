@@ -13,7 +13,6 @@ namespace WebAdminDashboard.Classes.Library
     public class PhotoAPIUtils
     {
         private const string BaseUrl = "https://api.pexels.com/v1/";
-        private static WebClient _httpClient = new WebClient();
 
         private static string GetApiKey()
         {
@@ -59,12 +58,15 @@ namespace WebAdminDashboard.Classes.Library
         {
             try
             {
-                _httpClient.Headers.Clear();
-                _httpClient.Headers.Add("Authorization", GetApiKey());
+                using (var client = new WebClient())
+                {
+                    client.Headers.Clear();
+                    client.Headers.Add("Authorization", GetApiKey());
 
-                string url = $"{BaseUrl}photos/{id}";
-                string json = await _httpClient.DownloadStringTaskAsync(url);
-                return JsonConvert.DeserializeObject<PexelsPhoto>(json);
+                    string url = $"{BaseUrl}photos/{id}";
+                    string json = await client.DownloadStringTaskAsync(url);
+                    return JsonConvert.DeserializeObject<PexelsPhoto>(json);
+                }
             }
             catch (Exception ex)
             {

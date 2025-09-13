@@ -19,36 +19,36 @@ body {
     opacity: 0.6;
 }
 
-    .sidebar a {
-        display: block;
-        color: #eeeeee;
-        padding: 16px;
-        text-decoration: none;
-    }
+.sidebar a {
+    display: block;
+    color: #eeeeee;
+    padding: 16px;
+    text-decoration: none;
+}
 
-        .sidebar a i {
-            margin-right: 8px;
-        }
+.sidebar a i {
+    margin-right: 8px;
+}
 
-        .sidebar a .label {
-            display: inline-block;
-            opacity: 1;
-            transition: opacity 0.2s ease;
-        }
+.sidebar a .label {
+    display: inline-block;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
 
-        .sidebar a.active {
-            background-color: #0092ca;
-            color: #eeeeee;
-        }
+.sidebar a.active {
+    background-color: #0092ca;
+    color: #eeeeee;
+}
 
-        .sidebar a:hover:not(.active) {
-            background-color: #222831;
-            color: #eeeeee;
-        }
+.sidebar a:hover:not(.active) {
+    background-color: #222831;
+    color: #eeeeee;
+}
 
-        /* Sidebar toggle link should not change color on hover; show only pointer */
-        .sidebar a.sidebar-toggle { cursor: pointer; }
-        .sidebar a.sidebar-toggle:hover { background-color: transparent; color: inherit; }
+/* Sidebar toggle link should not change color on hover; show only pointer */
+.sidebar a.sidebar-toggle { cursor: pointer; }
+.sidebar a.sidebar-toggle:hover { background-color: transparent; color: inherit; }
 
 div.content {
     margin-left: 200px;
@@ -61,24 +61,24 @@ div.content {
     width: 60px;
 }
 
-    .sidebar.collapsed a .label {
-        opacity: 0;
-        width: 0;
-        overflow: hidden;
-    }
+.sidebar.collapsed a .label {
+    opacity: 0;
+    width: 0;
+    overflow: hidden;
+}
 
-    .sidebar.collapsed a {
-        text-align: center;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 12px 0;
-    }
+.sidebar.collapsed a {
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 12px 0;
+}
 
-    .sidebar.collapsed a i {
-        margin-right: 0;
-        flex: 0 0 auto;
-    }
+.sidebar.collapsed a i {
+    margin-right: 0;
+    flex: 0 0 auto;
+}
 
 div.content.expanded-when-collapsed {
     margin-left: 60px;
@@ -95,9 +95,9 @@ div.content.expanded-when-collapsed {
         position: relative;
     }
 
-        .sidebar a {
-            float: left;
-        }
+    .sidebar a {
+        float: left;
+    }
 
     div.content {
         margin-left: 0;
@@ -110,33 +110,34 @@ div.content.expanded-when-collapsed {
         float: none;
     }
 }
+
 .topnav {
     overflow: hidden;
     background-color: #222831;
 }
 
-    .topnav a {
-        float: left;
-        color: #eeeeee;
-        text-align: center;
-        padding: 14px 16px;
-        text-decoration: none;
-        font-size: 17px;
-    }
+.topnav a {
+    float: left;
+    color: #eeeeee;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+}
 
-        .topnav a i {
-            margin-right: 8px;
-        }
+.topnav a i {
+    margin-right: 8px;
+}
 
-        .topnav a:hover {
-            background-color: #0092ca;
-            color: #eeeeee;
-        }
+.topnav a:hover {
+    background-color: #0092ca;
+    color: #eeeeee;
+}
 
-        .topnav a.active {
-            background-color: #0092ca;
-            color: #eeeeee;
-        }
+.topnav a.active {
+    background-color: #0092ca;
+    color: #eeeeee;
+}
 
 /* DataTable Customization */
 .dataTables_wrapper {
@@ -156,4 +157,295 @@ table.dataTable thead th {
 
 table.dataTable tbody tr:hover {
     background-color: rgba(0, 146, 202, 0.1) !important;
+}
+
+/* COMMON UI COMPONENTS - USED ACROSS ALL MODULES */
+
+/* Table header with add button */
+.table-header {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 15px;
+}
+
+/* Add buttons - unified styling */
+.btn-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #0092ca;
+    color: #eeeeee;
+    font-size: 22px;
+    font-weight: bold;
+    cursor: pointer;
+    border: none;
+    transition: 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-add:hover {
+    background: #222831;
+    transform: rotate(90deg) scale(1.1);
+}
+
+.btn-add:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.4);
+}
+
+/* Validation messages - unified */
+.validateTips {
+    border: 1px solid transparent;
+    padding: 8px;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    background-color: #d4edda;
+    color: #155724;
+    font-size: 13px;
+}
+
+.ui-state-error .validateTips,
+.validateTips.ui-state-error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+.validateTips.ui-state-highlight {
+    background-color: #fff3cd;
+    color: #856404;
+    border-color: #ffeaa7;
+}
+
+/* Delete modal messages - unified */
+.delete-message {
+    font-size: 14px;
+    margin-bottom: 15px;
+    color: #222831;
+    text-align: center;
+}
+
+.delete-details {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 15px;
+    color: #856404;
+}
+
+.delete-warning {
+    font-style: italic;
+    color: #6c757d;
+    font-size: 13px;
+    margin-bottom: 0;
+    text-align: center;
+}
+
+/* jQuery UI Dialog customization - unified */
+.ui-dialog {
+    background-color: #eeeeee;
+    border: 2px solid #393e46;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.ui-dialog-titlebar {
+    background-color: #222831;
+    color: #eeeeee;
+    border: none;
+    border-radius: 6px 6px 0 0;
+    padding: 12px 15px;
+}
+
+.ui-dialog-title {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.ui-dialog-titlebar-close {
+    background: transparent;
+    border: none;
+    color: #eeeeee;
+}
+
+.ui-dialog-titlebar-close:hover {
+    background-color: rgba(238, 238, 238, 0.2);
+}
+
+.ui-dialog-content {
+    padding: 20px;
+    background-color: #eeeeee;
+    color: #222831;
+}
+
+/* jQuery UI Button styling - unified */
+.ui-button {
+    background-color: #0092ca;
+    border: 1px solid #0092ca;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.ui-button:hover,
+.ui-button.ui-state-hover {
+    background-color: #007bb5;
+    border-color: #007bb5;
+}
+
+/* HIGH SPECIFICITY ACTION BUTTONS STYLING - Override any other CSS */
+table.dataTable .action-buttons {
+    display: flex !important;
+    gap: 8px !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+}
+
+table.dataTable .btn-action,
+.dataTables_wrapper .btn-action,
+tbody .btn-action {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 6px !important;
+    border: none !important;
+    border-radius: 4px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    font-size: 14px !important;
+    color: white !important;
+    text-decoration: none !important;
+    margin: 0 !important;
+}
+
+table.dataTable .btn-action:hover,
+.dataTables_wrapper .btn-action:hover,
+tbody .btn-action:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+}
+
+/* VIEW BUTTONS - Blue */
+table.dataTable .btn-action.view,
+table.dataTable .btn-action.view-user,
+table.dataTable .btn-action.view-destination,
+.dataTables_wrapper .btn-action.view,
+.dataTables_wrapper .btn-action.view-user,
+.dataTables_wrapper .btn-action.view-destination,
+tbody .btn-action.view,
+tbody .btn-action.view-user,
+tbody .btn-action.view-destination {
+    background-color: #0092ca !important;
+    color: white !important;
+}
+
+table.dataTable .btn-action.view:hover,
+table.dataTable .btn-action.view-user:hover,
+table.dataTable .btn-action.view-destination:hover,
+.dataTables_wrapper .btn-action.view:hover,
+.dataTables_wrapper .btn-action.view-user:hover,
+.dataTables_wrapper .btn-action.view-destination:hover,
+tbody .btn-action.view:hover,
+tbody .btn-action.view-user:hover,
+tbody .btn-action.view-destination:hover {
+    background-color: #007ba3 !important;
+}
+
+/* EDIT BUTTONS - Green */
+table.dataTable .btn-action.edit,
+.dataTables_wrapper .btn-action.edit,
+tbody .btn-action.edit {
+    background-color: #28a745 !important;
+    color: white !important;
+}
+
+table.dataTable .btn-action.edit:hover,
+.dataTables_wrapper .btn-action.edit:hover,
+tbody .btn-action.edit:hover {
+    background-color: #218838 !important;
+}
+
+/* DELETE BUTTONS - Red */
+table.dataTable .btn-action.delete,
+table.dataTable .btn-action.delete-user,
+table.dataTable .btn-action.delete-destination,
+.dataTables_wrapper .btn-action.delete,
+.dataTables.wrapper .btn-action.delete-user,
+.dataTables.wrapper .btn-action.delete-destination,
+tbody .btn-action.delete,
+tbody .btn-action.delete-user,
+tbody .btn-action.delete-destination {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+table.dataTable .btn-action.delete:hover,
+table.dataTable .btn-action.delete-user:hover,
+table.dataTable .btn-action.delete-destination:hover,
+.dataTables_wrapper .btn-action.delete:hover,
+.dataTables_wrapper .btn-action.delete-user:hover,
+.dataTables_wrapper .btn-action.delete-destination:hover,
+tbody .btn-action.delete:hover,
+tbody .btn-action.delete-user:hover,
+tbody .btn-action.delete-destination:hover {
+    background-color: #c82333 !important;
+}
+
+/* ICONS */
+table.dataTable .btn-action i,
+.dataTables_wrapper .btn-action i,
+tbody .btn-action i {
+    font-size: 14px !important;
+    margin: 0 !important;
+    color: inherit !important;
+}
+
+/* Disabled state */
+table.dataTable .btn-action:disabled,
+.dataTables_wrapper .btn-action:disabled,
+tbody .btn-action:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* DataTable cell alignment */
+table.dataTable .dt-center {
+    text-align: center !important;
+}
+
+table.dataTable .dt-left {
+    text-align: left !important;
+}
+
+/* Action column aligned to left but text-align for other content remains centered */
+table.dataTable tbody td:last-child {
+    text-align: left !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .ui-dialog {
+        width: 95% !important;
+        margin: 10px;
+    }
+    
+    .table-header {
+        justify-content: center;
+    }
+    
+    .btn-add {
+        width: 50px;
+        height: 50px;
+        font-size: 28px;
+    }
 }

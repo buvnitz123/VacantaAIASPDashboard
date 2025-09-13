@@ -138,6 +138,7 @@
     <Content Include="Content\destination-detail.css" />
     <Content Include="Content\facilitate.css" />
     <Content Include="Content\styles.css" />
+    <Content Include="Content\user-detail.css" />
     <Content Include="Pages\DestinationDetail.aspx" />
     <Content Include="Pages\Shared\Navbar.ascx" />
     <Content Include="Pages\Shared\Sidebar.ascx" />
@@ -196,7 +197,7 @@
     <Compile Include="Classes\Library\PhotoAPIViews\PexelsPhotoResponse.cs" />
     <Compile Include="Classes\Library\PhotoAPIViews\PexelsPhotoSource.cs" />
     <Compile Include="Classes\Library\PhotoAPIUtils.cs" />
-    <Compile Include="Classes\Library\S3Utils.cs" />
+    <Compile Include="Classes\Library\BlobAzureStorage.cs" />
     <Compile Include="Interfaces\IRepository.cs" />
     <Compile Include="Pages\DestinationDetail.aspx.cs">
       <DependentUpon>DestinationDetail.aspx</DependentUpon>

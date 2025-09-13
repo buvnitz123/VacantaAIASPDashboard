@@ -24,45 +24,58 @@ namespace WebAdminDashboard
             {
                 System.Diagnostics.Debug.WriteLine($"GetDestinationDetails called with ID: {destinationId}");
                 
-                var destinatieRepository = new DestinatieRepository();
-                var destinatie = destinatieRepository.GetById(destinationId);
-
-                if (destinatie == null)
+                using (var destinatieRepository = new DestinatieRepository())
                 {
-                    return JsonConvert.SerializeObject(new { 
-                        success = false, 
-                        message = "Destinația nu a fost găsită" 
-                    });
-                }
+                    var destinatie = destinatieRepository.GetById(destinationId);
 
-                // Get associated images
-                var imaginiRepository = new ImaginiDestinatieRepository();
-                using (var context = new Classes.Database.AppContext())
-                {
-                    var imagini = context.ImaginiDestinatie
-                        .Where(i => i.Id_Destinatie == destinationId)
-                        .Select(i => i.ImagineUrl)
-                        .ToList();
-
-                    var result = new
+                    if (destinatie == null)
                     {
-                        success = true,
-                        destination = new
-                        {
-                            Id_Destinatie = destinatie.Id_Destinatie,
-                            Denumire = destinatie.Denumire,
-                            Tara = destinatie.Tara,
-                            Oras = destinatie.Oras,
-                            Regiune = destinatie.Regiune,
-                            Descriere = destinatie.Descriere,
-                            PretAdult = destinatie.PretAdult,
-                            PretMinor = destinatie.PretMinor,
-                            Images = imagini
-                        }
-                    };
+                        return JsonConvert.SerializeObject(new { 
+                            success = false, 
+                            message = "Destinația nu a fost găsită" 
+                        });
+                    }
 
-                    System.Diagnostics.Debug.WriteLine($"Destination details retrieved: {destinatie.Denumire}");
-                    return JsonConvert.SerializeObject(result);
+                    // Get associated images using a fresh context each time
+                    using (var context = new Classes.Database.AppContext())
+                    {
+                        var imagini = context.ImaginiDestinatie
+                            .Where(i => i.Id_Destinatie == destinationId)
+                            .Select(i => i.ImagineUrl)
+                            .ToList();
+
+                        System.Diagnostics.Debug.WriteLine($"Found {imagini.Count} images for destination {destinationId}");
+
+                        // Fix image URLs if they are partial paths
+                        var fixedImageUrls = imagini.Select(url => 
+                        {
+                            if (!string.IsNullOrEmpty(url) && !url.StartsWith("http"))
+                            {
+                                return "https://vacantaai.blob.core.windows.net/vacantaai/" + url;
+                            }
+                            return url;
+                        }).Where(url => !string.IsNullOrEmpty(url)).ToList();
+
+                        var result = new
+                        {
+                            success = true,
+                            destination = new
+                            {
+                                Id_Destinatie = destinatie.Id_Destinatie,
+                                Denumire = destinatie.Denumire,
+                                Tara = destinatie.Tara,
+                                Oras = destinatie.Oras,
+                                Regiune = destinatie.Regiune,
+                                Descriere = destinatie.Descriere,
+                                PretAdult = destinatie.PretAdult,
+                                PretMinor = destinatie.PretMinor,
+                                Images = fixedImageUrls
+                            }
+                        };
+
+                        System.Diagnostics.Debug.WriteLine($"Destination details retrieved: {destinatie.Denumire}, Images: {fixedImageUrls.Count}");
+                        return JsonConvert.SerializeObject(result);
+                    }
                 }
             }
             catch (Exception ex)
@@ -70,7 +83,7 @@ namespace WebAdminDashboard
                 System.Diagnostics.Debug.WriteLine($"GetDestinationDetails error: {ex.Message}");
                 return JsonConvert.SerializeObject(new { 
                     success = false, 
-                    message = $"Eroare: {ex.Message}" 
+                    message = "Eroare la încărcarea detaliilor destinației" 
                 });
             }
         }

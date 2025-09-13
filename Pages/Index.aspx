@@ -14,9 +14,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
     <title>Dashboard</title>
-    <link href="/Content/styles.css" rel="stylesheet" />
-    <link href="/Content/categorie-vacanta.css" rel="stylesheet" />
-    <link href="/Content/facilitate.css?v=13" rel="stylesheet" />
+    <link href="/Content/styles.css?v=4" rel="stylesheet" />
+    <link href="/Content/categorie-vacanta.css?v=2" rel="stylesheet" />
+    <link href="/Content/facilitate.css?v=14" rel="stylesheet" />
     <link href="/Content/destinatie.css?v=3" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.js"></script>

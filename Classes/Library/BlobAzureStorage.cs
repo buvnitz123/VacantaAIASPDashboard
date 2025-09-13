@@ -9,7 +9,7 @@ using Azure.Storage.Sas;
 namespace WebAdminDashboard.Classes.Library
 {
     // Azure Blob implementation keeping original S3Utils method signatures.
-    public static class S3Utils
+    public static class BlobAzureStorage
     {
         private static readonly Lazy<BlobContainerClient> _containerLazy =
             new Lazy<BlobContainerClient>(InitContainer, isThreadSafe: true);

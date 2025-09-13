@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -6,9 +7,10 @@ using WebAdminDashboard.Interfaces;
 
 namespace WebAdminDashboard.Classes.Database.Repositories
 {
-    public class ImaginiDestinatieRepository : IRepository<ImaginiDestinatie>
+    public class ImaginiDestinatieRepository : IRepository<ImaginiDestinatie>, IDisposable
     {
         private readonly AppContext _context;
+        private bool _disposed = false;
 
         public ImaginiDestinatieRepository()
         {
@@ -43,6 +45,24 @@ namespace WebAdminDashboard.Classes.Database.Repositories
         {
             // ImaginiDestinatie are cheie compusă, deci Delete(int id) nu este aplicabil direct
             // Această metodă ar trebui să primească parametrii cheii compuse
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _context?.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

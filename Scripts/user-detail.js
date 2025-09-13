@@ -31,7 +31,7 @@ $(function(){
                         if (r.success) {
                             window.location.href = 'Index.aspx#utilizatori';
                         } else {
-                            alert(r.message || 'Eroare la stergere.');
+                            alert(r.message || 'Eroare la ?tergere.');
                         }
                     }).fail(function(){
                         alert('Eroare la comunicare server.');
@@ -58,7 +58,7 @@ function loadUserDetails(id) {
         var r;
         try { r = JSON.parse(resp.d); } catch { r = {}; }
         if (!r.success || !r.user) {
-            showError(r.message || 'Nu s-au putut incarca detaliile.');
+            showError(r.message || 'Nu s-au putut înc?rca detaliile.');
             return;
         }
         populateUser(r.user);
@@ -75,11 +75,24 @@ function populateUser(u) {
     $('#detail-email').text(u.Email || '-');
     $('#detail-telefon').text(u.Telefon || '-');
     $('#detail-nastere').text(u.Data_Nastere || '-');
-    $('#detail-activ').text(u.EsteActiv ? 'Da' : 'Nu');
+    
+    // Enhanced status display with styling
+    var statusElement = $('#detail-activ');
+    if (u.EsteActiv) {
+        statusElement.text('Activ').addClass('status-active').removeClass('status-inactive');
+    } else {
+        statusElement.text('Inactiv').addClass('status-inactive').removeClass('status-active');
+    }
 
     if (u.PozaProfil) {
         $('#detail-poza').attr('src', u.PozaProfil).show();
         $('#no-photo').hide();
+        
+        // Add error handling for broken images
+        $('#detail-poza').on('error', function() {
+            $(this).hide();
+            $('#no-photo').show();
+        });
     } else {
         $('#detail-poza').hide();
         $('#no-photo').show();

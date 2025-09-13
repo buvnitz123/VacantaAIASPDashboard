@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -8,9 +9,10 @@ using System.Diagnostics;
 
 namespace WebAdminDashboard.Classes.Database.Repositories
 {
-    public class CategorieVacantaRepository : IRepository<CategorieVacanta>
+    public class CategorieVacantaRepository : IRepository<CategorieVacanta>, IDisposable
     {
         private readonly AppContext _context;
+        private bool _disposed = false;
 
         public CategorieVacantaRepository()
         {
@@ -44,23 +46,41 @@ namespace WebAdminDashboard.Classes.Database.Repositories
             var entity = GetById(id);
             if (entity != null)
             {
-                // Delete image from S3 if exists
+                // Delete image from Azure Blob Storage if exists
                 if (!string.IsNullOrEmpty(entity.ImagineUrl))
                 {
                     try
                     {
-                        S3Utils.DeleteImage(entity.ImagineUrl);
+                        BlobAzureStorage.DeleteImage(entity.ImagineUrl);
                     }
                     catch (System.Exception ex)
                     {
                         // Log error but continue with database deletion
-                        Debug.WriteLine($"Failed to delete image from S3: {ex.Message}");
+                        Debug.WriteLine($"Failed to delete image from Azure Blob Storage: {ex.Message}");
                     }
                 }
 
                 _context.CategoriiVacanta.Remove(entity);
                 _context.SaveChanges();
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _context?.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

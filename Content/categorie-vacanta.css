@@ -10,72 +10,32 @@
     font-family: Arial, sans-serif;
 }
 
-    /* Etichete */
-    #form-categorie label {
-        display: block;
-        margin-bottom: 6px;
-        font-weight: bold;
-        color: #222831;
-    }
+/* Etichete */
+#form-categorie label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+    color: #222831;
+}
 
-    /* Input text */
-    #form-categorie input[type="text"],
-    #form-categorie input[type="file"] {
-        width: 100%;
-        padding: 8px 10px;
-        margin-bottom: 15px;
-        border: 1px solid #393e46;
-        border-radius: 8px;
-        box-sizing: border-box;
-        transition: border-color 0.3s;
-        background-color: white;
-        color: #222831;
-    }
-
-        #form-categorie input[type="text"]:focus,
-        #form-categorie input[type="file"]:focus {
-            border-color: #0092ca;
-            outline: none;
-        }
-
-/* Mesaj validare */
-.validateTips {
-    color: #dc3545;
-    font-size: 14px;
+/* Input text */
+#form-categorie input[type="text"],
+#form-categorie input[type="file"] {
+    width: 100%;
+    padding: 8px 10px;
     margin-bottom: 15px;
+    border: 1px solid #393e46;
+    border-radius: 8px;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
+    background-color: white;
+    color: #222831;
 }
 
-/* Image cell in DataTable */
-.image-cell {
-    position: relative;
-    display: inline-block;
-}
-
-/* Magnifying glass button */
-.btn-icon.lupa {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background: rgba(0, 0, 0, 0.6);
-    border: none;
-    border-radius: 50%;
-    color: white;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-.image-cell:hover .btn-icon.lupa {
-    opacity: 1;
-}
-
-.btn-icon.lupa:hover {
-    background: rgba(0, 0, 0, 0.8);
+#form-categorie input[type="text"]:focus,
+#form-categorie input[type="file"]:focus {
+    border-color: #0092ca;
+    outline: none;
 }
 
 /* Previzualizare imagine */
@@ -110,109 +70,13 @@
     border: 1px solid #393e46;
 }
 
-/* Containerul de sus */
-.table-header {
-    display: flex;
-    justify-content: flex-start;
-    margin-bottom: 15px;
-}
-
-/* Focus accesibil */
-.btn-add:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0,123,255,0.4);
-}
-
-.btn-add {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: #0092ca;
-    color: #eeeeee;
-    font-size: 22px;
-    font-weight: bold;
-    cursor: pointer;
-    border: none;
-    transition: 0.2s ease;
-}
-
-    .btn-add:hover {
-        background: #222831;
-        transform: rotate(90deg) scale(1.1);
-    }
-
-
-
-    .btn-action:last-child {
-        margin-right: 0; /* ultimul nu are margin */
-    }
-
-    .btn-action:hover {
-        transform: scale(1.2);
-    }
-
-/* Buton lupa */
-.btn-icon.lupa {
-    background: none;
-    border: none;
-    font-size: 20px; /* puțin mai mare */
-    cursor: pointer;
-    padding: 4px;
-    transition: transform 0.2s;
-}
-
-    .btn-icon.lupa:hover {
-        transform: scale(1.2);
-    }
-
-
-    .btn-action.edit {
-        color: #0092ca;
-    }
-
-    .btn-action.delete {
-        color: #dc3545;
-    }
-
-/* Modal de ștergere */
-#dialog-delete-categorie {
-    font-family: Arial, sans-serif;
-}
-
-.delete-message {
-    font-size: 14px;
-    margin-bottom: 0;
-    text-align: center;
-}
-
-.delete-details {
-    margin-bottom: 10px;
-    padding: 10px;
-    background-color: #eeeeee;
-    border-left: 4px solid #dc3545;
-    border-radius: 4px;
-}
-
-.delete-warning {
-    color: #393e46;
-    font-size: 14px;
-    margin-bottom: 0;
-    text-align: center;
-}
-
+/* Specific to categoria - category name in delete modal */
 #delete-categorie-name {
     font-weight: bold;
     color: #dc3545;
 }
 
-/* Modal de editare */
-#dialog-edit-categorie {
-    font-family: Arial, sans-serif;
-}
-
+/* Modal de editare - specific styles */
 #form-edit-categorie {
     max-width: 400px;
     margin: 10px auto;
@@ -261,8 +125,7 @@
     border: 1px solid #393e46;
 }
 
-/* Progress indicator styles */
-
+/* Progress indicator styles - specific to category upload */
 #upload-progress {
     text-align: center;
     padding: 10px;

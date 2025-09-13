@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -6,9 +7,10 @@ using WebAdminDashboard.Interfaces;
 
 namespace WebAdminDashboard.Classes.Database.Repositories
 {
-    public class UtilizatorRepository : IRepository<Utilizator>
+    public class UtilizatorRepository : IRepository<Utilizator>, IDisposable
     {
         private readonly AppContext _context;
+        private bool _disposed = false;
 
         public UtilizatorRepository()
         {
@@ -45,6 +47,24 @@ namespace WebAdminDashboard.Classes.Database.Repositories
                 _context.Utilizatori.Remove(entity);
                 _context.SaveChanges();
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _context?.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

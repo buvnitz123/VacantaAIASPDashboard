@@ -4,7 +4,7 @@ $(document).ready(function() {
     var destinationId = urlParams.get('id');
     
     if (!destinationId) {
-        showError('ID-ul destinatiei nu a fost specificat');
+        showError('ID-ul destinației nu a fost specificat');
         return;
     }
 
@@ -19,7 +19,7 @@ $(document).ready(function() {
     // Edit button functionality
     $('#btn-edit-destination').click(function() {
         // TODO: Implement edit functionality
-        alert('Functionalitatea de editare va fi implementata in viitor');
+        alert('Funcționalitatea de editare va fi implementată în viitor');
     });
 
     // Handle sidebar navigation from detail page
@@ -37,9 +37,6 @@ $(document).ready(function() {
             window.location.href = 'Index.aspx' + href;
         }
     });
-
-    // Image gallery click handler - use direct binding after images are loaded
-    // This will be bound in displayImagesGallery function
 });
 
 function loadDestinationDetails(destinationId) {
@@ -65,7 +62,7 @@ function loadDestinationDetails(destinationId) {
             if (result.success && result.destination) {
                 displayDestinationDetails(result.destination);
             } else {
-                showError(result.message || 'Eroare la incarcarea destinatiei');
+                showError(result.message || 'Eroare la încărcarea destinației');
             }
         },
         error: function(xhr, status, error) {
@@ -88,48 +85,71 @@ function displayDestinationDetails(destination) {
     $('#detail-tara').text(destination.Tara || '-');
     $('#detail-oras').text(destination.Oras || '-');
     $('#detail-regiune').text(destination.Regiune || '-');
-    $('#detail-descriere').text(destination.Descriere || 'Fara descriere disponibila');
+    $('#detail-descriere').text(destination.Descriere || 'Fără descriere disponibilă');
     
     // Fill in pricing
     $('#detail-pret-adult').text(formatPrice(destination.PretAdult));
     $('#detail-pret-minor').text(formatPrice(destination.PretMinor));
     
-    // Load images gallery
+    // Load images gallery - clear any existing images first
     displayImagesGallery(destination.Images || []);
-    
     
     // Show content
     $('#destination-content').show();
 }
 
 function displayImagesGallery(images) {
+    console.log('Displaying images gallery, image count:', images.length);
+    
     var gallery = $('#images-gallery');
+    
+    // Clear existing content completely
     gallery.empty();
     
+    // Remove any existing event handlers to prevent conflicts
+    gallery.off('click', '.gallery-item');
+    
     if (!images || images.length === 0) {
-        gallery.html('<p class="no-images">Nu sunt disponibile imagini pentru aceasta destinatie.</p>');
+        gallery.html('<p class="no-images">Nu sunt disponibile imagini pentru această destinație.</p>');
         return;
     }
     
     images.forEach(function(imageUrl, index) {
-        var imageElement = $('<div class="gallery-item">' +
-            '<img src="' + imageUrl + '" alt="Imagine destinatie ' + (index + 1) + '" class="gallery-image" data-url="' + imageUrl + '">' +
+        console.log('Processing image', index + 1, ':', imageUrl);
+        
+        // Create unique ID for each gallery item to avoid conflicts
+        var uniqueId = 'gallery-item-' + Date.now() + '-' + index;
+        
+        var imageElement = $('<div class="gallery-item" id="' + uniqueId + '">' +
+            '<img src="' + imageUrl + '" alt="Imagine destinație ' + (index + 1) + '" class="gallery-image" data-url="' + imageUrl + '" data-index="' + index + '">' +
             '<div class="image-overlay">' +
                 '<i class="fas fa-search-plus"></i>' +
             '</div>' +
         '</div>');
         
-        // Bind click event to the entire gallery item (not just the image)
-        imageElement.click(function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var imageUrl = $(this).find('.gallery-image').data('url');
-            console.log('Gallery item clicked, URL:', imageUrl);
-            showImageModal(imageUrl);
+        // Add error handling for images that fail to load
+        imageElement.find('.gallery-image').on('error', function() {
+            console.log('Image failed to load:', imageUrl);
+            $(this).parent().html('<div class="image-error">Imaginea nu a putut fi încărcată</div>');
         });
         
         gallery.append(imageElement);
     });
+    
+    // Bind click events using event delegation after all images are added
+    gallery.on('click', '.gallery-item', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        var imageUrl = $(this).find('.gallery-image').data('url');
+        console.log('Gallery item clicked, URL:', imageUrl);
+        
+        if (imageUrl) {
+            showImageModal(imageUrl);
+        }
+    });
+    
+    console.log('Gallery setup complete, items added:', images.length);
 }
 
 function formatPrice(price) {
@@ -146,18 +166,18 @@ function showError(message) {
     $('#destination-content').hide();
 }
 
-
 function showImageModal(imageUrl) {
     console.log('showImageModal called with URL:', imageUrl);
     
     // Remove any existing modals first
     $('.image-modal').remove();
     
-    // Create modal for image viewing
-    var modal = $('<div class="image-modal" style="display: none;">' +
+    // Create modal for image viewing with unique ID
+    var modalId = 'image-modal-' + Date.now();
+    var modal = $('<div class="image-modal" id="' + modalId + '" style="display: none;">' +
         '<div class="modal-content">' +
             '<span class="close-modal">&times;</span>' +
-            '<img src="' + imageUrl + '" alt="Imagine destinatie" class="modal-image">' +
+            '<img src="' + imageUrl + '" alt="Imagine destinație" class="modal-image">' +
         '</div>' +
     '</div>');
     
@@ -166,10 +186,10 @@ function showImageModal(imageUrl) {
     // Show modal with fade effect
     modal.fadeIn(300);
     
-    console.log('Modal created and shown');
+    console.log('Modal created and shown with ID:', modalId);
     
     // Close modal handlers
-    modal.find('.close-modal').click(function(e) {
+    modal.find('.close-modal').on('click', function(e) {
         e.preventDefault();
         e.stopPropagation();
         console.log('Close button clicked');
@@ -178,7 +198,7 @@ function showImageModal(imageUrl) {
         });
     });
     
-    modal.click(function(e) {
+    modal.on('click', function(e) {
         if (e.target === this) {
             console.log('Background clicked');
             modal.fadeOut(300, function() {
@@ -187,13 +207,20 @@ function showImageModal(imageUrl) {
         }
     });
     
-    // ESC key to close
-    $(document).keyup(function(e) {
+    // ESC key to close - bind to document but remove after modal is closed
+    var escHandler = function(e) {
         if (e.keyCode === 27) { // ESC key
             modal.fadeOut(300, function() {
                 modal.remove();
             });
-            $(document).off('keyup'); // Remove this specific handler
+            $(document).off('keyup', escHandler);
         }
+    };
+    
+    $(document).on('keyup', escHandler);
+    
+    // Auto-remove handler when modal is removed
+    modal.on('remove', function() {
+        $(document).off('keyup', escHandler);
     });
 }
