@@ -137,10 +137,12 @@
     <Content Include="Content\destinatie.css" />
     <Content Include="Content\destination-detail.css" />
     <Content Include="Content\facilitate.css" />
+    <Content Include="Content\news.css" />
     <Content Include="Content\puncte-interes.css" />
     <Content Include="Content\styles.css" />
     <Content Include="Content\user-detail.css" />
     <Content Include="Pages\DestinationDetail.aspx" />
+    <Content Include="Pages\News.ascx" />
     <Content Include="Pages\Shared\Navbar.ascx" />
     <Content Include="Pages\Shared\Sidebar.ascx" />
     <Content Include="Pages\PunctDeInteres.ascx" />
@@ -156,6 +158,7 @@
     <Content Include="Scripts\destinatie.js" />
     <Content Include="Scripts\destination-detail.js" />
     <Content Include="Scripts\facilitate.js" />
+    <Content Include="Scripts\news.js" />
     <Content Include="Scripts\user-detail.js" />
     <Content Include="Web.config" />
   </ItemGroup>
@@ -194,11 +197,13 @@
     <Compile Include="Classes\DTO\Sugestie.cs" />
     <Compile Include="Classes\DTO\Utilizator.cs" />
     <Compile Include="Classes\Library\EncryptionUtils.cs" />
+    <Compile Include="Classes\Library\NewsAPIUtils.cs" />
     <Compile Include="Classes\Library\PhotoAPIViews\PexelsPhoto.cs" />
     <Compile Include="Classes\Library\PhotoAPIViews\PexelsPhotoResponse.cs" />
     <Compile Include="Classes\Library\PhotoAPIViews\PexelsPhotoSource.cs" />
     <Compile Include="Classes\Library\PhotoAPIUtils.cs" />
     <Compile Include="Classes\Library\BlobAzureStorage.cs" />
+    <Compile Include="Classes\Library\WeatherAPIUtils.cs" />
     <Compile Include="Interfaces\IRepository.cs" />
     <Compile Include="Pages\DestinationDetail.aspx.cs">
       <DependentUpon>DestinationDetail.aspx</DependentUpon>
@@ -218,6 +223,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="API_SETUP_GUIDE.md" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
