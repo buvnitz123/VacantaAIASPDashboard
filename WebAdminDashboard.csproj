@@ -137,6 +137,7 @@
     <Content Include="Content\destinatie.css" />
     <Content Include="Content\destination-detail.css" />
     <Content Include="Content\facilitate.css" />
+    <Content Include="Content\puncte-interes.css" />
     <Content Include="Content\styles.css" />
     <Content Include="Content\user-detail.css" />
     <Content Include="Pages\DestinationDetail.aspx" />

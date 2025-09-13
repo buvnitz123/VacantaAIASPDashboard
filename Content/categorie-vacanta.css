@@ -70,6 +70,31 @@
     border: 1px solid #393e46;
 }
 
+/* Specific styling for preview dialog */
+#dialog-preview-categorie .ui-dialog-content {
+    padding: 10px !important;
+    text-align: center !important;
+    background: #eeeeee !important;
+}
+
+#preview-img {
+    display: block !important;
+    max-width: 100% !important;
+    max-height: 80vh !important;
+    margin: 0 auto !important;
+    border-radius: 8px !important;
+    border: 2px solid #393e46 !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2) !important;
+}
+
+/* Force center the dialog */
+.ui-dialog.ui-widget.ui-widget-content.ui-corner-all.ui-front {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+}
+
 /* Specific to categoria - category name in delete modal */
 #delete-categorie-name {
     font-weight: bold;

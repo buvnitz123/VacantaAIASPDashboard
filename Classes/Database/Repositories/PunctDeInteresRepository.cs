@@ -19,12 +19,12 @@ namespace WebAdminDashboard.Classes.Database.Repositories
 
         public IEnumerable<PunctDeInteres> GetAll()
         {
-            return _context.PuncteDeInteres.ToList();
+            return _context.PuncteDeInteres.Include(p => p.Destinatie).ToList();
         }
 
         public PunctDeInteres GetById(int id)
         {
-            return _context.PuncteDeInteres.Find(id);
+            return _context.PuncteDeInteres.Include(p => p.Destinatie).FirstOrDefault(p => p.Id_PunctDeInteres == id);
         }
 
         public void Insert(PunctDeInteres entity)

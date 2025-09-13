@@ -7,15 +7,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
     <title>Detalii Destinatie - Dashboard</title>
-    <link href="/Content/styles.css" rel="stylesheet" />
+    <link href="/Content/styles.css?v=6" rel="stylesheet" />
     <link href="/Content/destinatie.css?v=3" rel="stylesheet" />
-    <link href="/Content/destination-detail.css" rel="stylesheet" />
+    <link href="/Content/destination-detail.css?v=2" rel="stylesheet" />
+    <link href="/Content/puncte-interes.css?v=1" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css"/>
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <script src="/Scripts/app.js"></script>
-    <script src="/Scripts/destination-detail.js?v=3"></script>
+    <script src="/Scripts/app.js?v=4"></script>
+    <script src="/Scripts/destination-detail.js?v=5"></script>
 </head>
 <body>
     <form id="form1" runat="server">
@@ -69,6 +72,10 @@
                                     <label>Regiune:</label>
                                     <span id="detail-regiune"></span>
                                 </div>
+                                <div class="info-row">
+                                    <label>Data Inregistrare:</label>
+                                    <span id="detail-data-inregistrare"></span>
+                                </div>
                                 <div class="info-row description">
                                     <label>Descriere:</label>
                                     <p id="detail-descriere"></p>
@@ -106,6 +113,30 @@
                         </div>
                     </div>
 
+                    <!-- Puncte de Interes Section -->
+                    <div class="detail-card puncte-interes-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-map-marker-alt"></i> Puncte de Interes</h3>
+                            <button type="button" id="btn-adauga-punct" class="btn-add-small">
+                                <i class="fas fa-plus"></i> Adauga Punct de Interes
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <table id="tblPuncteDestinatie" class="display" style="width:100%">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Denumire</th>
+                                        <th>Tip</th>
+                                        <th>Descriere</th>
+                                        <th>Actiuni</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <!-- Action Buttons -->
                     <div class="action-section">
                         <button type="button" id="btn-edit-destination" class="btn-primary">
@@ -115,6 +146,86 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal Dialogs for Puncte de Interes -->
+        
+        <!-- Add Punct Dialog -->
+        <div id="dialog-punct" title="Adauga Punct de Interes" style="display:none;">
+            <form id="form-punct">
+                <div class="validateTips">Toate campurile sunt obligatorii.</div>
+                <fieldset>
+                    <label for="denumire-punct">Denumire:</label>
+                    <input type="text" name="denumire-punct" id="denumire-punct" class="text ui-widget-content ui-corner-all" maxlength="50" />
+                    
+                    <label for="tip-punct">Tip:</label>
+                    <select name="tip-punct" id="tip-punct" class="text ui-widget-content ui-corner-all">
+                        <option value="">Selecteaz? tipul</option>
+                        <option value="Muzeu">Muzeu</option>
+                        <option value="Monument">Monument</option>
+                        <option value="Parc">Parc</option>
+                        <option value="Restaurant">Restaurant</option>
+                        <option value="Hotel">Hotel</option>
+                        <option value="Atractie">Atrac?ie turistic?</option>
+                        <option value="Centru comercial">Centru comercial</option>
+                        <option value="Plaja">Plaj?</option>
+                        <option value="Munte">Munte</option>
+                        <option value="Lac">Lac</option>
+                        <option value="Alt">Altul</option>
+                    </select>
+                    
+                    <label for="descriere-punct">Descriere:</label>
+                    <textarea name="descriere-punct" id="descriere-punct" class="text ui-widget-content ui-corner-all" rows="4" maxlength="4000"></textarea>
+                </fieldset>
+            </form>
+        </div>
+
+        <!-- Edit Punct Dialog -->
+        <div id="dialog-edit-punct" title="Editeaz? Punct de Interes" style="display:none;">
+            <form id="form-edit-punct">
+                <div class="validateTips">Toate campurile sunt obligatorii.</div>
+                <input type="hidden" id="edit-id-punct" />
+                <fieldset>
+                    <label for="edit-denumire-punct">Denumire:</label>
+                    <input type="text" name="edit-denumire-punct" id="edit-denumire-punct" class="text ui-widget-content ui-corner-all" maxlength="50" />
+                    
+                    <label for="edit-tip-punct">Tip:</label>
+                    <select name="edit-tip-punct" id="edit-tip-punct" class="text ui-widget-content ui-corner-all">
+                        <option value="">Selecteaz? tipul</option>
+                        <option value="Muzeu">Muzeu</option>
+                        <option value="Monument">Monument</option>
+                        <option value="Parc">Parc</option>
+                        <option value="Restaurant">Restaurant</option>
+                        <option value="Hotel">Hotel</option>
+                        <option value="Atractie">Atrac?ie turistic?</option>
+                        <option value="Centru comercial">Centru comercial</option>
+                        <option value="Plaja">Plaj?</option>
+                        <option value="Munte">Munte</option>
+                        <option value="Lac">Lac</option>
+                        <option value="Alt">Altul</option>
+                    </select>
+                    
+                    <label for="edit-descriere-punct">Descriere:</label>
+                    <textarea name="edit-descriere-punct" id="edit-descriere-punct" class="text ui-widget-content ui-corner-all" rows="4" maxlength="4000"></textarea>
+                </fieldset>
+            </form>
+        </div>
+
+        <!-- View Punct Dialog -->
+        <div id="dialog-view-punct" title="Detalii Punct de Interes" style="display:none;">
+            <div id="view-punct-content" class="view-content">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- Delete Punct Dialog -->
+        <div id="dialog-delete-punct" title="Confirmare stergere" style="display:none;">
+            <p>
+                <span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>
+                Sigur doriti sa stergeti punctul de interes <strong><span id="delete-punct-name"></span></strong>?
+            </p>
+            <p><em>Aceasta actiune este ireversibila.</em></p>
+        </div>
+
     </form>
 </body>
 </html>

@@ -3,6 +3,41 @@ body {
     font-family: "Lato", sans-serif;
     background-color: #eeeeee;
     color: #222831;
+    padding-top: 55px; /* Space for fixed navbar */
+}
+
+.topnav {
+    overflow: hidden;
+    background-color: #222831;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.topnav a {
+    float: left;
+    color: #eeeeee;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+}
+
+.topnav a i {
+    margin-right: 8px;
+}
+
+.topnav a:hover {
+    background-color: #0092ca;
+    color: #eeeeee;
+}
+
+.topnav a.active {
+    background-color: #0092ca;
+    color: #eeeeee;
 }
 
 .sidebar {
@@ -11,10 +46,16 @@ body {
     width: 200px;
     background-color: #393e46;
     position: fixed;
-    height: 100%;
+    top: 48px;
+    left: 0;
+    height: calc(100vh - 48px);
     overflow: auto;
     transition: width 0.25s ease, opacity 0.25s ease;
+    z-index: 999;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+    border-top: none;
 }
+
 .sidebar.fading {
     opacity: 0.6;
 }
@@ -52,7 +93,7 @@ body {
 
 div.content {
     margin-left: 200px;
-    padding: 1px 16px;
+    padding: 20px 16px;
     transition: margin-left 0.25s ease;
 }
 
@@ -89,10 +130,16 @@ div.content.expanded-when-collapsed {
 .section.active { display: block; }
 
 @media screen and (max-width: 700px) {
+    body {
+        padding-top: 110px; /* More space for mobile navbar */
+    }
+    
     .sidebar {
         width: 100%;
         height: auto;
         position: relative;
+        top: 0;
+        box-shadow: none;
     }
 
     .sidebar a {
@@ -101,6 +148,7 @@ div.content.expanded-when-collapsed {
 
     div.content {
         margin-left: 0;
+        padding-top: 10px;
     }
 }
 
@@ -282,6 +330,22 @@ table.dataTable tbody tr:hover {
     color: #222831;
 }
 
+/* Force center modal dialogs */
+.ui-dialog {
+    position: fixed !important;
+}
+
+/* Special styling for preview dialogs */
+.ui-dialog[aria-describedby="dialog-preview-categorie"] {
+    max-width: 90vw !important;
+    max-height: 90vh !important;
+}
+
+.ui-dialog[aria-describedby="dialog-preview-categorie"] .ui-dialog-content {
+    text-align: center !important;
+    padding: 15px !important;
+}
+
 /* jQuery UI Button styling - unified */
 .ui-button {
     background-color: #0092ca;
@@ -337,12 +401,18 @@ tbody .btn-action:hover {
 table.dataTable .btn-action.view,
 table.dataTable .btn-action.view-user,
 table.dataTable .btn-action.view-destination,
+table.dataTable .btn-action.view-punct,
+table.dataTable .btn-action.view-descriere,
 .dataTables_wrapper .btn-action.view,
 .dataTables_wrapper .btn-action.view-user,
 .dataTables_wrapper .btn-action.view-destination,
+.dataTables_wrapper .btn-action.view-punct,
+.dataTables_wrapper .btn-action.view-descriere,
 tbody .btn-action.view,
 tbody .btn-action.view-user,
-tbody .btn-action.view-destination {
+tbody .btn-action.view-destination,
+tbody .btn-action.view-punct,
+tbody .btn-action.view-descriere {
     background-color: #0092ca !important;
     color: white !important;
 }
@@ -350,12 +420,18 @@ tbody .btn-action.view-destination {
 table.dataTable .btn-action.view:hover,
 table.dataTable .btn-action.view-user:hover,
 table.dataTable .btn-action.view-destination:hover,
+table.dataTable .btn-action.view-punct:hover,
+table.dataTable .btn-action.view-descriere:hover,
 .dataTables_wrapper .btn-action.view:hover,
 .dataTables_wrapper .btn-action.view-user:hover,
 .dataTables_wrapper .btn-action.view-destination:hover,
+.dataTables_wrapper .btn-action.view-punct:hover,
+.dataTables_wrapper .btn-action.view-descriere:hover,
 tbody .btn-action.view:hover,
 tbody .btn-action.view-user:hover,
-tbody .btn-action.view-destination:hover {
+tbody .btn-action.view-destination:hover,
+tbody .btn-action.view-punct:hover,
+tbody .btn-action.view-descriere:hover {
     background-color: #007ba3 !important;
 }
 
@@ -378,8 +454,8 @@ table.dataTable .btn-action.delete,
 table.dataTable .btn-action.delete-user,
 table.dataTable .btn-action.delete-destination,
 .dataTables_wrapper .btn-action.delete,
-.dataTables.wrapper .btn-action.delete-user,
-.dataTables.wrapper .btn-action.delete-destination,
+.dataTables_wrapper .btn-action.delete-user,
+.dataTables_wrapper .btn-action.delete-destination,
 tbody .btn-action.delete,
 tbody .btn-action.delete-user,
 tbody .btn-action.delete-destination {
@@ -392,7 +468,7 @@ table.dataTable .btn-action.delete-user:hover,
 table.dataTable .btn-action.delete-destination:hover,
 .dataTables_wrapper .btn-action.delete:hover,
 .dataTables_wrapper .btn-action.delete-user:hover,
-.dataTables_wrapper .btn-action.delete-destination:hover,
+.dataTables.wrapper .btn-action.delete-destination:hover,
 tbody .btn-action.delete:hover,
 tbody .btn-action.delete-user:hover,
 tbody .btn-action.delete-destination:hover {
@@ -432,20 +508,45 @@ table.dataTable tbody td:last-child {
     text-align: left !important;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .ui-dialog {
-        width: 95% !important;
-        margin: 10px;
-    }
-    
-    .table-header {
-        justify-content: center;
-    }
-    
-    .btn-add {
-        width: 50px;
-        height: 50px;
-        font-size: 28px;
-    }
+/* PUNCTE DE INTERES SPECIFIC STYLING */
+.destination-link {
+    color: #0092ca !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+.destination-link:hover {
+    color: #007ba3 !important;
+    text-decoration: underline !important;
+}
+
+.destination-link i {
+    font-size: 12px !important;
+    opacity: 0.7 !important;
+}
+
+.punct-details {
+    padding: 15px !important;
+}
+
+.punct-details .detail-row {
+    margin-bottom: 12px !important;
+    padding: 8px 0 !important;
+    border-bottom: 1px solid #eee !important;
+}
+
+.punct-details .detail-row:last-child {
+    border-bottom: none !important;
+}
+
+.punct-details .detail-row.description {
+    margin-top: 15px !important;
+}
+
+.punct-details .detail-row strong {
+    color: #333 !important;
+    margin-right: 8px !important;
 }

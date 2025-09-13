@@ -14,7 +14,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
     <title>Dashboard</title>
-    <link href="/Content/styles.css?v=4" rel="stylesheet" />
+    <link href="/Content/styles.css?v=6" rel="stylesheet" />
     <link href="/Content/categorie-vacanta.css?v=2" rel="stylesheet" />
     <link href="/Content/facilitate.css?v=14" rel="stylesheet" />
     <link href="/Content/destinatie.css?v=3" rel="stylesheet" />
@@ -25,10 +25,10 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css"/>
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <script src="/Scripts/app.js"></script>
-    <script src="/Scripts/categorie-vacanta.js"></script>
-    <script src="/Scripts/facilitate.js?v=13"></script>
-    <script src="/Scripts/destinatie.js?v=3"></script>
+    <script src="/Scripts/app.js?v=4"></script>
+    <script src="/Scripts/categorie-vacanta.js?v=2"></script>
+    <script src="/Scripts/facilitate.js?v=15"></script>
+    <script src="/Scripts/destinatie.js?v=4"></script>
     <script src="/Scripts/user-detail.js"></script>
 </head>
 <body>

@@ -3,7 +3,8 @@ $(function () {
         denumire = $("#denumire"),
         imagine = $("#imagine"),
         allFields = $([]).add(denumire).add(imagine),
-        tips = $(".validateTips");
+        tips = $(".validateTips"),
+        progressInterval; // Add global progress interval variable
 
     function updateTips(t) {
         tips
@@ -37,13 +38,13 @@ $(function () {
 
         if ($.trim(denumire.val()) === "") {
             denumire.addClass("ui-state-error");
-            updateTips("Trebuie să introduceți o denumire.");
+            updateTips("Trebuie sa introduceti o denumire.");
             valid = false;
         }
 
         if (!imagine[0].files || imagine[0].files.length === 0) {
             imagine.addClass("ui-state-error");
-            updateTips("Trebuie să selectați o imagine.");
+            updateTips("Trebuie sa selectati o imagine.");
             valid = false;
         }
 
@@ -57,8 +58,11 @@ $(function () {
                 $('#upload-progress').show();
                 $('#progress-text').text('0%');
                 
+                // Clear any existing interval
+                clearInterval(progressInterval);
+                
                 var progress = 0;
-                var progressInterval = setInterval(function() {
+                progressInterval = setInterval(function() {
                     progress += Math.random() * 10;
                     if (progress > 95) progress = 95;
                     
@@ -84,11 +88,17 @@ $(function () {
                         
                         setTimeout(function() {
                             $('#upload-progress').hide();
-                            dialog.dialog("close"); // Close jQuery UI dialog
+                            dialog.dialog("close");
                             
-                            var result = JSON.parse(response.d);
+                            var result;
+                            try { 
+                                result = JSON.parse(response.d); 
+                            } catch (e) { 
+                                result = { success: false, message: 'Eroare la procesarea răspunsului server' }; 
+                            }
+                            
                             if (result.success) {
-                                updateTips('Categoria a fost adăugată cu succes!');
+                                updateTips('Categoria a fost adaugata cu succes!');
                                 $('#tblCategorii').DataTable().ajax.reload();
                             } else {
                                 updateTips('Eroare: ' + result.message);
@@ -99,17 +109,7 @@ $(function () {
                         clearInterval(progressInterval);
                         $('#upload-progress').hide();
                         
-                        console.log("AJAX Error Details:", xhr, status, error);
-                        console.log("Response Text:", xhr.responseText);
-                        console.log("Status Code:", xhr.status);
-                        
                         var errorMessage = "Eroare la adaugarea categoriei (Status: " + xhr.status + ")";
-                        
-                        if (xhr.responseText) {
-                            console.log("Full Response:", xhr.responseText);
-                            errorMessage += " - Verifica consola pentru detalii complete";
-                        }
-                        
                         updateTips(errorMessage);
                     }
                 });
@@ -130,6 +130,7 @@ $(function () {
         buttons: {
             "Adauga": adaugaCategorie,
             "Anulare": function() {
+                clearInterval(progressInterval); // Clean up interval
                 $('#upload-progress').hide();
                 $('#preview-container').hide();
                 $('#img-preview').attr('src', '');
@@ -137,6 +138,7 @@ $(function () {
             }
         },
         close: function() {
+            clearInterval(progressInterval); // Clean up interval
             $('#upload-progress').hide();
             $('#preview-container').hide();
             $('#img-preview').attr('src', '');
@@ -154,44 +156,16 @@ $(function () {
         dialog.dialog("open");
     });
 
-    var previewDialog = $("#dialog-preview-categorie").dialog({
-        autoOpen: false,
-        modal: true,
-        width: 900,
-        height: 700,
-        resizable: true,
-        open: function() {
-            // Force dialog to be centered after image loads
-            var img = $(this).find('img');
-            if (img.length) {
-                img.on('load', function() {
-                    previewDialog.dialog('option', 'position', { my: 'center', at: 'center', of: window });
-                });
-            }
-        },
-        close: function() {
-            // Clear the image source when dialog is closed
-            $('#preview-img').attr('src', '');
-        },
-        position: { my: 'center', at: 'center', of: window },
-        buttons: {
-            "Inchide": function () {
-                previewDialog.dialog("close");
-            }
-        }
-    });
-
-
     // Initialize delete dialog
     var deleteDialog = $("#dialog-delete-categorie").dialog({
         autoOpen: false,
         modal: true,
         width: 400,
         buttons: {
-            "Șterge": function() {
+            "Sterge": function() {
                 var deleteButton = $(this).find(".ui-dialog-buttonpane button:first");
                 var originalContent = deleteButton.html();
-                deleteButton.html('<i class="fas fa-spinner fa-spin"></i> Se șterge...');
+                deleteButton.html('<i class="fas fa-spinner fa-spin"></i> Se sterge...');
                 deleteButton.prop('disabled', true);
                 
                 var categorieId = $(this).data('categorieId');
@@ -205,23 +179,28 @@ $(function () {
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
                     success: function(response) {
-                        var result = JSON.parse(response.d);
+                        var result;
+                        try { 
+                            result = JSON.parse(response.d); 
+                        } catch (e) { 
+                            result = { success: false, message: 'Eroare la procesarea răspunsului server' }; 
+                        }
+                        
                         if (result.success) {
                             table.row(row).remove().draw(false);
-                            updateTips('Categoria a fost ștearsă cu succes!');
+                            updateTips('Categoria a fost stearsa cu succes!');
                         } else {
                             updateTips('Eroare: ' + result.message);
                         }
                         deleteDialog.dialog("close");
                     },
                     error: function(xhr, status, error) {
-                        console.error("Delete error:", error);
-                        updateTips('A apărut o eroare la ștergerea categoriei.');
+                        updateTips('A aparut o eroare la stergerea categoriei.');
                         deleteDialog.dialog("close");
                     }
                 });
             },
-            "Anulează": function() {
+            "Anuleaza": function() {
                 $(this).dialog("close");
             }
         },
@@ -229,7 +208,7 @@ $(function () {
             $(this).removeData('categorieId').removeData('row');
             $(this).find(".ui-dialog-buttonpane button:first")
                    .prop('disabled', false)
-                   .html('Șterge');
+                   .html('Sterge');
         }
     });
 
@@ -249,7 +228,8 @@ $(function () {
                 .dialog("open");
         }
     });
-    // Initialize preview dialog
+
+    // Initialize preview dialog - moved earlier to ensure it's available
     var previewDialog = $("#dialog-preview-categorie").dialog({
         autoOpen: false,
         modal: true,
@@ -257,22 +237,56 @@ $(function () {
         maxWidth: '90%',
         height: 'auto',
         maxHeight: '90vh',
+        position: { my: "center", at: "center", of: window },
         buttons: {
-            "Închide": function() {
+            "Inchide": function() {
                 $(this).dialog("close");
             }
+        },
+        open: function() {
+            // Ensure the dialog is centered on open
+            $(this).dialog("option", "position", { my: "center", at: "center", of: window });
         }
     });
     
+    console.log('Preview dialog initialized:', previewDialog.length); // Debug log
+
     // Handle view button click
-    $('#tblCategorii').on('click', '.btn-action.view', function() {
+    $('#tblCategorii').on('click', '.btn-action.view', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('View button clicked!'); // Debug log
+        
         var row = $(this).closest('tr');
         var table = $('#tblCategorii').DataTable();
         var rowData = table.row(row).data();
         
-        if (rowData && rowData.UrlImagine) {
-            $('#preview-img').attr('src', rowData.UrlImagine);
+        console.log('View button clicked, rowData:', rowData); // Debug log
+        
+        if (rowData && rowData.ImagineUrl) {
+            console.log('Opening preview with image:', rowData.ImagineUrl); // Debug log
+            $('#preview-img').attr('src', rowData.ImagineUrl);
+            
+            // Verifică dacă elementul preview-img există
+            if ($('#preview-img').length === 0) {
+                console.error('Element #preview-img not found!');
+                alert('Elementul pentru previzualizarea imaginii nu a fost gasit!');
+                return;
+            }
+            
+            // Verifică dacă dialog-ul există
+            if (previewDialog.length === 0) {
+                console.error('Preview dialog not found!');
+                alert('Dialog-ul pentru previzualizare nu a fost gasit!');
+                return;
+            }
+            
             previewDialog.dialog("open");
+            console.log('Preview dialog opened'); // Debug log
+        } else {
+            console.log('No image URL found in rowData'); // Debug log
+            alert('Nu s-a gasit URL-ul imaginii pentru aceasta categorie!');
         }
     });
 
@@ -329,7 +343,13 @@ $(function () {
                         contentType: "application/json; charset=utf-8",
                         dataType: "json",
                         success: function(response) {
-                            var result = JSON.parse(response.d);
+                            var result;
+                            try { 
+                                result = JSON.parse(response.d); 
+                            } catch (e) { 
+                                result = { success: false, message: 'Eroare la procesarea răspunsului server' }; 
+                            }
+                            
                             if (result.success) {
                                 // Update name separately if needed
                                 updateCategoryName(categorieId, newDenumire);
@@ -364,7 +384,13 @@ $(function () {
             contentType: "application/json; charset=utf-8",
             dataType: "json",
             success: function(response) {
-                var result = JSON.parse(response.d);
+                var result;
+                try { 
+                    result = JSON.parse(response.d); 
+                } catch (e) { 
+                    result = { success: false, message: 'Eroare la procesarea răspunsului server' }; 
+                }
+                
                 if (result.success) {
                     $('#tblCategorii').DataTable().ajax.reload();
                     updateTips("Categoria '" + newDenumire + "' a fost modificata cu succes.");
@@ -398,33 +424,6 @@ $(function () {
             $("#edit-imagine").removeClass("ui-state-error");
             // Curata mesajul de succes la inchiderea modalului
             tips.text("Toate campurile sunt obligatorii.").removeClass("ui-state-highlight");
-        }
-    });
-
-    // Initialize preview dialog
-    $("#dialog-preview-categorie").dialog({
-        autoOpen: false,
-        modal: true,
-        width: 'auto',
-        maxWidth: '90%',
-        height: 'auto',
-        maxHeight: '90vh',
-        buttons: {
-            "Închide": function() {
-                $(this).dialog("close");
-            }
-        }
-    });
-
-    // Handle view button click
-    $('#tblCategorii tbody').on('click', '.btn-action.view', function () {
-        var row = $(this).closest('tr');
-        var table = $('#tblCategorii').DataTable();
-        var rowData = table.row(row).data();
-        
-        if (rowData) {
-            $('#preview-img').attr('src', rowData.UrlImagine);
-            $('#dialog-preview-categorie').dialog('open');
         }
     });
 

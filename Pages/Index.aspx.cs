@@ -203,10 +203,35 @@ namespace WebAdminDashboard
         [WebMethod]
         public static string GetPuncteInteresData()
         {
-            using (var repository = new PunctDeInteresRepository())
+            try
             {
-                var data = repository.GetAll();
-                return JsonConvert.SerializeObject(data);
+                using (var repository = new PunctDeInteresRepository())
+                {
+                    var data = repository.GetAll();
+                    
+                    // Map to include destination data
+                    var result = data.Select(p => new
+                    {
+                        Id_PunctDeInteres = p.Id_PunctDeInteres,
+                        Denumire = p.Denumire,
+                        Descriere = p.Descriere,
+                        Tip = p.Tip,
+                        Id_Destinatie = p.Id_Destinatie,
+                        Destinatie = p.Destinatie != null ? new
+                        {
+                            Id_Destinatie = p.Destinatie.Id_Destinatie,
+                            Denumire = p.Destinatie.Denumire,
+                            Tara = p.Destinatie.Tara,
+                            Oras = p.Destinatie.Oras
+                        } : null
+                    }).ToList();
+                    
+                    return JsonConvert.SerializeObject(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la încărcarea punctelor de interes" });
             }
         }
 

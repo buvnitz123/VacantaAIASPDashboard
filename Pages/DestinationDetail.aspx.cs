@@ -1,6 +1,7 @@
 using System;
 using System.Web.UI;
 using WebAdminDashboard.Classes.Database.Repositories;
+using WebAdminDashboard.Classes.DTO;
 using Newtonsoft.Json;
 using System.Web.Services;
 using System.Linq;
@@ -37,24 +38,22 @@ namespace WebAdminDashboard
                     }
 
                     // Get associated images using a fresh context each time
-                    using (var context = new Classes.Database.AppContext())
+                    using (var imaginiRepository = new ImaginiDestinatieRepository())
                     {
-                        var imagini = context.ImaginiDestinatie
+                        var imagini = imaginiRepository.GetAll()
                             .Where(i => i.Id_Destinatie == destinationId)
-                            .Select(i => i.ImagineUrl)
                             .ToList();
 
                         System.Diagnostics.Debug.WriteLine($"Found {imagini.Count} images for destination {destinationId}");
 
-                        // Fix image URLs if they are partial paths
-                        var fixedImageUrls = imagini.Select(url => 
+                        // Fix image URLs if they are partial paths and create proper image objects
+                        var fixedImageUrls = imagini.Select(img => new
                         {
-                            if (!string.IsNullOrEmpty(url) && !url.StartsWith("http"))
-                            {
-                                return "https://vacantaai.blob.core.windows.net/vacantaai/" + url;
-                            }
-                            return url;
-                        }).Where(url => !string.IsNullOrEmpty(url)).ToList();
+                            Id = img.Id_ImaginiDestinatie,
+                            ImagineUrl = !string.IsNullOrEmpty(img.ImagineUrl) && !img.ImagineUrl.StartsWith("http") 
+                                ? "https://vacantaai.blob.core.windows.net/vacantaai/" + img.ImagineUrl 
+                                : img.ImagineUrl
+                        }).Where(img => !string.IsNullOrEmpty(img.ImagineUrl)).ToList();
 
                         var result = new
                         {
@@ -67,6 +66,7 @@ namespace WebAdminDashboard
                                 Oras = destinatie.Oras,
                                 Regiune = destinatie.Regiune,
                                 Descriere = destinatie.Descriere,
+                                Data_Inregistrare = destinatie.Data_Inregistrare,
                                 PretAdult = destinatie.PretAdult,
                                 PretMinor = destinatie.PretMinor,
                                 Images = fixedImageUrls
@@ -85,6 +85,204 @@ namespace WebAdminDashboard
                     success = false, 
                     message = "Eroare la încărcarea detaliilor destinației" 
                 });
+            }
+        }
+
+        [WebMethod]
+        public static string GetPuncteByDestinatie(int destinatieId)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"GetPuncteByDestinatie called with destinatieId: {destinatieId}");
+                
+                using (var repository = new PunctDeInteresRepository())
+                {
+                    var puncte = repository.GetAll()
+                        .Where(p => p.Id_Destinatie == destinatieId)
+                        .ToList();
+
+                    System.Diagnostics.Debug.WriteLine($"Found {puncte.Count} puncte for destination {destinatieId}");
+
+                    var result = puncte.Select(p => new
+                    {
+                        Id_PunctDeInteres = p.Id_PunctDeInteres,
+                        Denumire = p.Denumire ?? "",
+                        Descriere = p.Descriere ?? "",
+                        Tip = p.Tip ?? "",
+                        Id_Destinatie = p.Id_Destinatie
+                    }).ToList();
+
+                    var json = JsonConvert.SerializeObject(result);
+                    System.Diagnostics.Debug.WriteLine($"Returning JSON: {json}");
+                    return json;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetPuncteByDestinatie error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la încărcarea punctelor de interes: " + ex.Message });
+            }
+        }
+
+        [WebMethod]
+        public static string AddPunctDeInteres(int destinatieId, string denumire, string tip, string descriere)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"AddPunctDeInteres called: destinatieId={destinatieId}, denumire={denumire}, tip={tip}");
+                
+                if (string.IsNullOrWhiteSpace(denumire))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Denumirea este obligatorie" });
+                }
+
+                if (string.IsNullOrWhiteSpace(tip))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Tipul este obligatoriu" });
+                }
+
+                // Generate unique ID using timestamp and random number
+                var punctId = Math.Floor(DateTime.Now.Subtract(new DateTime(1970, 1, 1)).TotalSeconds) + new Random().Next(1, 1000);
+
+                using (var repository = new PunctDeInteresRepository())
+                {
+                    // Check if ID already exists
+                    if (repository.GetById((int)punctId) != null)
+                    {
+                        punctId += new Random().Next(1, 1000);
+                    }
+
+                    var punct = new PunctDeInteres
+                    {
+                        Id_PunctDeInteres = (int)punctId,
+                        Denumire = denumire.Trim(),
+                        Tip = tip.Trim(),
+                        Descriere = !string.IsNullOrWhiteSpace(descriere) ? descriere.Trim() : null,
+                        Id_Destinatie = destinatieId
+                    };
+
+                    repository.Insert(punct);
+                    System.Diagnostics.Debug.WriteLine($"Punct de interes added successfully with ID: {punct.Id_PunctDeInteres}");
+
+                    return JsonConvert.SerializeObject(new { success = true, id = punct.Id_PunctDeInteres });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AddPunctDeInteres error: {ex.Message}");
+                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la adăugarea punctului de interes: " + ex.Message });
+            }
+        }
+
+        [WebMethod]
+        public static string GetPunctDeInteresById(int id)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"GetPunctDeInteresById called with id: {id}");
+                
+                using (var repository = new PunctDeInteresRepository())
+                {
+                    var punct = repository.GetById(id);
+                    if (punct == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Punct de interes not found with id: {id}");
+                        return JsonConvert.SerializeObject(new { success = false, message = "Punctul de interes nu a fost găsit" });
+                    }
+
+                    var result = new
+                    {
+                        Id_PunctDeInteres = punct.Id_PunctDeInteres,
+                        Denumire = punct.Denumire ?? "",
+                        Descriere = punct.Descriere ?? "",
+                        Tip = punct.Tip ?? "",
+                        Id_Destinatie = punct.Id_Destinatie
+                    };
+
+                    return JsonConvert.SerializeObject(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetPunctDeInteresById error: {ex.Message}");
+                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la încărcarea punctului de interes: " + ex.Message });
+            }
+        }
+
+        [WebMethod]
+        public static string UpdatePunctDeInteres(int id, string denumire, string tip, string descriere)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdatePunctDeInteres called: id={id}, denumire={denumire}, tip={tip}");
+                
+                if (string.IsNullOrWhiteSpace(denumire))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Denumirea este obligatorie" });
+                }
+
+                if (string.IsNullOrWhiteSpace(tip))
+                {
+                    return JsonConvert.SerializeObject(new { success = false, message = "Tipul este obligatoriu" });
+                }
+
+                using (var repository = new PunctDeInteresRepository())
+                {
+                    var punct = repository.GetById(id);
+                    
+                    if (punct == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Punct de interes not found for update with id: {id}");
+                        return JsonConvert.SerializeObject(new { success = false, message = "Punctul de interes nu a fost găsit" });
+                    }
+
+                    punct.Denumire = denumire.Trim();
+                    punct.Tip = tip.Trim();
+                    punct.Descriere = !string.IsNullOrWhiteSpace(descriere) ? descriere.Trim() : null;
+                    
+                    repository.Update(punct);
+                    System.Diagnostics.Debug.WriteLine($"Punct de interes updated successfully with id: {id}");
+
+                    return JsonConvert.SerializeObject(new { success = true });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"UpdatePunctDeInteres error: {ex.Message}");
+                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la actualizarea punctului de interes: " + ex.Message });
+            }
+        }
+
+        [WebMethod]
+        public static string DeletePunctDeInteres(int id)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"DeletePunctDeInteres called with id: {id}");
+                
+                using (var repository = new PunctDeInteresRepository())
+                {
+                    var punct = repository.GetById(id);
+                    
+                    if (punct == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Punct de interes not found for deletion with id: {id}");
+                        return JsonConvert.SerializeObject(new { success = false, message = "Punctul de interes nu a fost găsit" });
+                    }
+
+                    // TODO: Check for any related records (imagini, etc.) before deleting
+                    
+                    repository.Delete(id);
+                    System.Diagnostics.Debug.WriteLine($"Punct de interes deleted successfully with id: {id}");
+                    
+                    return JsonConvert.SerializeObject(new { success = true });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"DeletePunctDeInteres error: {ex.Message}");
+                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la ștergerea punctului de interes: " + ex.Message });
             }
         }
     }

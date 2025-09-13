@@ -4,9 +4,12 @@ $(document).ready(function() {
     var destinationId = urlParams.get('id');
     
     if (!destinationId) {
-        showError('ID-ul destinației nu a fost specificat');
+        showError('ID-ul destinatiei nu a fost specificat');
         return;
     }
+
+    // Store destination ID globally
+    window.currentDestinationId = parseInt(destinationId);
 
     // Load destination details
     loadDestinationDetails(destinationId);
@@ -19,7 +22,7 @@ $(document).ready(function() {
     // Edit button functionality
     $('#btn-edit-destination').click(function() {
         // TODO: Implement edit functionality
-        alert('Funcționalitatea de editare va fi implementată în viitor');
+        alert('Functionalitatea de editare va fi implementata in viitor');
     });
 
     // Handle sidebar navigation from detail page
@@ -40,8 +43,6 @@ $(document).ready(function() {
 });
 
 function loadDestinationDetails(destinationId) {
-    console.log('Loading destination details for ID:', destinationId);
-    
     $('#loading-indicator').show();
     $('#error-message').hide();
     $('#destination-content').hide();
@@ -53,29 +54,43 @@ function loadDestinationDetails(destinationId) {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function(response) {
-            console.log('Destination details response:', response);
             $('#loading-indicator').hide();
             
-            var result = JSON.parse(response.d);
-            console.log('Parsed destination details:', result);
+            var result;
+            try { 
+                result = JSON.parse(response.d); 
+            } catch (e) { 
+                showError('Eroare la procesarea raspunsului server'); 
+                return;
+            }
             
             if (result.success && result.destination) {
                 displayDestinationDetails(result.destination);
+                // Initialize puncte de interes functionality after content is loaded
+                setTimeout(function() {
+                    try {
+                        initPuncteInteresManagement();
+                        initPuncteInteresTable(parseInt(destinationId));
+                    } catch (e) {
+                        console.error('Error initializing puncte de interes:', e);
+                        showError('Eroare la initializarea punctelor de interes: ' + e.message);
+                    }
+                }, 500);
             } else {
-                showError(result.message || 'Eroare la încărcarea destinației');
+                showError(result.message || 'Eroare la incarcarea destinatiei');
             }
         },
         error: function(xhr, status, error) {
-            console.log('AJAX error:', error);
             $('#loading-indicator').hide();
+            console.error('Ajax error loading destination:', error);
+            console.error('Status:', xhr.status);
+            console.error('Response:', xhr.responseText);
             showError('Eroare de comunicare cu serverul');
         }
     });
 }
 
 function displayDestinationDetails(destination) {
-    console.log('Displaying destination:', destination);
-    
     // Update page title
     $('#destination-title').text('Detalii: ' + destination.Denumire);
     document.title = 'Detalii: ' + destination.Denumire + ' - Dashboard';
@@ -85,142 +100,601 @@ function displayDestinationDetails(destination) {
     $('#detail-tara').text(destination.Tara || '-');
     $('#detail-oras').text(destination.Oras || '-');
     $('#detail-regiune').text(destination.Regiune || '-');
-    $('#detail-descriere').text(destination.Descriere || 'Fără descriere disponibilă');
+    $('#detail-descriere').text(destination.Descriere || '-');
+    $('#detail-pret-adult').text((destination.PretAdult || 0) + ' RON');
+    $('#detail-pret-minor').text((destination.PretMinor || 0) + ' RON');
     
-    // Fill in pricing
-    $('#detail-pret-adult').text(formatPrice(destination.PretAdult));
-    $('#detail-pret-minor').text(formatPrice(destination.PretMinor));
-    
-    // Load images gallery - clear any existing images first
-    displayImagesGallery(destination.Images || []);
-    
-    // Show content
-    $('#destination-content').show();
-}
+    var dataInregistrare = destination.Data_Inregistrare || '-';
+    if (dataInregistrare !== '-') {
+        try {
+            var date = new Date(dataInregistrare);
+            dataInregistrare = date.toLocaleDateString('ro-RO');
+        } catch (e) {
+            dataInregistrare = destination.Data_Inregistrare;
+        }
+    }
+    $('#detail-data-inregistrare').text(dataInregistrare);
 
-function displayImagesGallery(images) {
-    console.log('Displaying images gallery, image count:', images.length);
-    
-    var gallery = $('#images-gallery');
-    
-    // Clear existing content completely
-    gallery.empty();
-    
-    // Remove any existing event handlers to prevent conflicts
-    gallery.off('click', '.gallery-item');
-    
-    if (!images || images.length === 0) {
-        gallery.html('<p class="no-images">Nu sunt disponibile imagini pentru această destinație.</p>');
+    // Display images if available
+    var imagesContainer = $('#images-gallery');
+    if (!imagesContainer.length) {
+        console.error('Images gallery container not found');
         return;
     }
     
-    images.forEach(function(imageUrl, index) {
-        console.log('Processing image', index + 1, ':', imageUrl);
+    console.log('Images data:', destination.Images);
+    
+    if (destination.Images && destination.Images.length > 0) {
+        imagesContainer.empty();
         
-        // Create unique ID for each gallery item to avoid conflicts
-        var uniqueId = 'gallery-item-' + Date.now() + '-' + index;
-        
-        var imageElement = $('<div class="gallery-item" id="' + uniqueId + '">' +
-            '<img src="' + imageUrl + '" alt="Imagine destinație ' + (index + 1) + '" class="gallery-image" data-url="' + imageUrl + '" data-index="' + index + '">' +
-            '<div class="image-overlay">' +
-                '<i class="fas fa-search-plus"></i>' +
-            '</div>' +
-        '</div>');
-        
-        // Add error handling for images that fail to load
-        imageElement.find('.gallery-image').on('error', function() {
-            console.log('Image failed to load:', imageUrl);
-            $(this).parent().html('<div class="image-error">Imaginea nu a putut fi încărcată</div>');
+        destination.Images.forEach(function(image, index) {
+            console.log('Processing image:', image);
+            
+            var imageElement = $('<div class="gallery-item">').append(
+                $('<img class="gallery-image">').attr('src', image.ImagineUrl).attr('alt', 'Imagine ' + (index + 1)),
+                $('<div class="image-overlay">').append(
+                    $('<i class="fas fa-search-plus">')
+                )
+            );
+            
+            imageElement.click(function() {
+                showImageModal(image.ImagineUrl);
+            });
+            
+            imagesContainer.append(imageElement);
         });
         
-        gallery.append(imageElement);
+        $('.images-card').show();
+    } else {
+        console.log('No images found for destination');
+        imagesContainer.html('<div class="no-images">Nu sunt imagini disponibile pentru aceasta destinatie</div>');
+        $('.images-card').show();
+    }
+
+    $('#destination-content').show();
+}
+
+function initPuncteInteresTable(destinatieId) {
+    // Verify table exists
+    if (!$('#tblPuncteDestinatie').length) {
+        console.error('Table #tblPuncteDestinatie not found in DOM');
+        return;
+    }
+    
+    console.log('Initializing puncte de interes table for destination:', destinatieId);
+    
+    // Check if DataTable is already initialized and destroy it
+    if ($.fn.DataTable.isDataTable('#tblPuncteDestinatie')) {
+        console.log('Destroying existing DataTable');
+        $('#tblPuncteDestinatie').DataTable().destroy();
+        $('#tblPuncteDestinatie').empty().html(
+            '<thead><tr><th>ID</th><th>Denumire</th><th>Tip</th><th>Descriere</th><th>Acțiuni</th></tr></thead><tbody></tbody>'
+        );
+    }
+    
+    try {
+        $('#tblPuncteDestinatie').DataTable({
+            ajax: {
+                url: 'DestinationDetail.aspx/GetPuncteByDestinatie',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                dataType: 'json',
+                data: function() {
+                    return JSON.stringify({ destinatieId: destinatieId });
+                },
+                dataSrc: function (json) {
+                    console.log('Ajax response received:', json);
+                    var data = [];
+                    try { 
+                        data = JSON.parse(json.d); 
+                        console.log('Parsed data:', data);
+                    } catch (e) { 
+                        console.error('Error parsing puncte data:', e);
+                        console.error('Raw response:', json);
+                    }
+                    return data;
+                },
+                error: function(xhr, error, thrown) {
+                    console.error('Ajax error:', error);
+                    console.error('Status:', xhr.status);
+                    console.error('Response:', xhr.responseText);
+                    console.error('Thrown:', thrown);
+                    alert('Eroare la încărcarea punctelor de interes: ' + error + '\nStatus: ' + xhr.status + '\nDetalii în consolă F12');
+                }
+            },
+            columns: [
+                { data: 'Id_PunctDeInteres', className: 'dt-left' },
+                { data: 'Denumire', className: 'dt-left' },
+                { data: 'Tip', className: 'dt-left' },
+                { 
+                    data: 'Descriere', 
+                    className: 'dt-left',
+                    render: function(data, type) {
+                        if (type === 'display' && data) {
+                            var previewText = data.length > 50 ? data.substring(0, 50) + '...' : data;
+                            return previewText;
+                        }
+                        return data || '';
+                    }
+                },
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    className: 'dt-left',
+                    render: function(data, type, row) {
+                        return "<div class='action-buttons'>" +
+                               "<button class='btn-action view-punct-dest' title='Vizualizeaza cu imagini' data-id='" + row.Id_PunctDeInteres + "'>" +
+                               "<i class='fas fa-eye'></i>" +
+                               "</button>" +
+                               "<button class='btn-action edit-punct-dest' title='Editeaza' data-id='" + row.Id_PunctDeInteres + "'>" +
+                               "<i class='fas fa-edit'></i>" +
+                               "</button>" +
+                               "<button class='btn-action delete-punct-dest' title='Sterge' data-id='" + row.Id_PunctDeInteres + "' data-name='" + row.Denumire + "'>" +
+                               "<i class='fas fa-trash'></i>" +
+                               "</button>" +
+                               "</div>";
+                    }
+                }
+            ],
+            language: {
+                emptyTable: "Nu exista puncte de interes pentru aceasta destinatie",
+                loadingRecords: "Se incarca...",
+                processing: "Se proceseaza...",
+                info: "Afisare _START_ la _END_ din _TOTAL_ inregistrari",
+                infoEmpty: "Afisare 0 la 0 din 0 inregistrari",
+                infoFiltered: "(filtrat din _MAX_ inregistrari totale)",
+                lengthMenu: "Afisare _MENU_ inregistrari",
+                search: "Cautare:",
+                zeroRecords: "Nu s-au gasit inregistrari potrivite",
+                paginate: {
+                    first: "Primul",
+                    last: "Ultimul",
+                    next: "Urmatorul",
+                    previous: "Precedentul"
+                }
+            }
+        });
+        console.log('DataTable initialized successfully');
+    } catch (e) {
+        console.error('Error initializing DataTable:', e);
+        alert('Eroare la initializarea tabelului: ' + e.message);
+    }
+}
+
+function initPuncteInteresManagement() {
+    var tips = $(".validateTips");
+
+    function updateTips(t) {
+        tips.text(t).addClass("ui-state-highlight");
+        setTimeout(function () {
+            tips.removeClass("ui-state-highlight", 1500);
+        }, 500);
+    }
+
+    function validatePunctForm() {
+        var valid = true;
+        var denumire = $("#denumire-punct").val().trim();
+        var tip = $("#tip-punct").val().trim();
+
+        $("#denumire-punct").removeClass("ui-state-error");
+        $("#tip-punct").removeClass("ui-state-error");
+
+        if (!denumire) {
+            $("#denumire-punct").addClass("ui-state-error");
+            updateTips("Denumirea este obligatorie.");
+            valid = false;
+        }
+
+        if (!tip) {
+            $("#tip-punct").addClass("ui-state-error");
+            updateTips("Tipul este obligatoriu.");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    function validateEditPunctForm() {
+        var valid = true;
+        var denumire = $("#edit-denumire-punct").val().trim();
+        var tip = $("#edit-tip-punct").val().trim();
+
+        $("#edit-denumire-punct").removeClass("ui-state-error");
+        $("#edit-tip-punct").removeClass("ui-state-error");
+
+        if (!denumire) {
+            $("#edit-denumire-punct").addClass("ui-state-error");
+            updateTips("Denumirea este obligatorie.");
+            valid = false;
+        }
+
+        if (!tip) {
+            $("#edit-tip-punct").addClass("ui-state-error");
+            updateTips("Tipul este obligatoriu.");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    function adaugaPunct() {
+        if (!validatePunctForm()) {
+            return false;
+        }
+
+        var data = {
+            destinatieId: window.currentDestinationId,
+            denumire: $("#denumire-punct").val().trim(),
+            tip: $("#tip-punct").val().trim(),
+            descriere: $("#descriere-punct").val().trim()
+        };
+
+        $.ajax({
+            type: "POST",
+            url: "DestinationDetail.aspx/AddPunctDeInteres",
+            data: JSON.stringify(data),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(response) {
+                var result;
+                try { 
+                    result = JSON.parse(response.d); 
+                } catch (e) { 
+                    result = { success: false, message: 'Eroare la procesarea răspunsului server' }; 
+                }
+                
+                if (result.success) {
+                    $('#tblPuncteDestinatie').DataTable().ajax.reload();
+                    $("#dialog-punct").dialog("close");
+                    updateTips("Punctul de interes a fost adaugat cu succes!");
+                } else {
+                    updateTips('Eroare: ' + result.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                updateTips('A aparut o eroare la adaugarea punctului de interes.');
+            }
+        });
+
+        return true;
+    }
+
+    function modificaPunct() {
+        if (!validateEditPunctForm()) {
+            return false;
+        }
+
+        var data = {
+            id: parseInt($("#edit-id-punct").val()),
+            denumire: $("#edit-denumire-punct").val().trim(),
+            tip: $("#edit-tip-punct").val().trim(),
+            descriere: $("#edit-descriere-punct").val().trim()
+        };
+
+        $.ajax({
+            type: "POST",
+            url: "DestinationDetail.aspx/UpdatePunctDeInteres",
+            data: JSON.stringify(data),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(response) {
+                var result;
+                try { 
+                    result = JSON.parse(response.d); 
+                } catch (e) { 
+                    result = { success: false, message: 'Eroare la procesarea răspunsului server' }; 
+                }
+                
+                if (result.success) {
+                    $('#tblPuncteDestinatie').DataTable().ajax.reload();
+                    $("#dialog-edit-punct").dialog("close");
+                    updateTips("Punctul de interes a fost modificat cu succes!");
+                } else {
+                    updateTips('Eroare: ' + result.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                updateTips('A aparut o eroare la modificarea punctului de interes.');
+            }
+        });
+
+        return true;
+    }
+
+    // Initialize dialogs
+    $("#dialog-punct").dialog({
+        autoOpen: false,
+        height: 450,
+        width: 500,
+        modal: true,
+        buttons: {
+            "Adauga": adaugaPunct,
+            "Anulare": function() {
+                $(this).dialog("close");
+            }
+        },
+        close: function() {
+            var form = $("#form-punct")[0];
+            if (form) {
+                form.reset();
+            }
+            $(".ui-state-error").removeClass("ui-state-error");
+            tips.text("Toate campurile sunt obligatorii.").removeClass("ui-state-highlight");
+        }
+    });
+
+    $("#dialog-edit-punct").dialog({
+        autoOpen: false,
+        height: 450,
+        width: 500,
+        modal: true,
+        buttons: {
+            "Salveaza": modificaPunct,
+            "Anulare": function() {
+                $(this).dialog("close");
+            }
+        },
+        close: function() {
+            var form = $("#form-edit-punct")[0];
+            if (form) {
+                form.reset();
+            }
+            $(".ui-state-error").removeClass("ui-state-error");
+            tips.text("Toate campurile sunt obligatorii.").removeClass("ui-state-highlight");
+        }
+    });
+
+    $("#dialog-view-punct").dialog({
+        autoOpen: false,
+        height: 600,
+        width: 800,
+        modal: true,
+        buttons: {
+            "Inchide": function() {
+                $(this).dialog("close");
+            }
+        }
+    });
+
+    $("#dialog-delete-punct").dialog({
+        autoOpen: false,
+        modal: true,
+        width: 400,
+        buttons: {
+            "Sterge": function() {
+                var punctId = $(this).data('punctId');
+                var dialogRef = $(this);
+                
+                $.ajax({
+                    type: "POST",
+                    url: "DestinationDetail.aspx/DeletePunctDeInteres",
+                    data: JSON.stringify({ id: punctId }),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function(response) {
+                        var result;
+                        try { 
+                            result = JSON.parse(response.d); 
+                        } catch (e) { 
+                            result = { success: false, message: 'Eroare la procesarea raspunsului server' }; 
+                        }
+                        
+                        if (result.success) {
+                            $('#tblPuncteDestinatie').DataTable().ajax.reload();
+                            updateTips("Punctul de interes a fost sters cu succes!");
+                        } else {
+                            updateTips('Eroare: ' + result.message);
+                        }
+                        dialogRef.dialog("close");
+                    },
+                    error: function(xhr, status, error) {
+                        updateTips('A aparut o eroare la stergerea punctului de interes.');
+                        dialogRef.dialog("close");
+                    }
+                });
+            },
+            "Anuleaza": function() {
+                $(this).dialog("close");
+            }
+        },
+        close: function() {
+            $(this).removeData('punctId');
+        }
+    });
+
+    // Event handlers
+    $("#btn-adauga-punct").click(function() {
+        $("#dialog-punct").dialog("open");
+    });
+
+    // Delegate event handlers for dynamically created buttons
+    $(document).on('click', '.view-punct-dest', function(e) {
+        e.preventDefault();
+        var punctId = $(this).data('id');
+        
+        // Show loading in the view modal
+        $("#view-punct-content").html('<div class="loading-punct"><i class="fas fa-spinner fa-spin"></i> Se incarca detaliile si imaginile...</div>');
+        $("#dialog-view-punct").dialog("open");
+        
+        // Load punct details and images
+        loadPunctDetailsWithImages(punctId);
+    });
+
+    $(document).on('click', '.edit-punct-dest', function(e) {
+        e.preventDefault();
+        var punctId = $(this).data('id');
+        
+        $.ajax({
+            type: "POST",
+            url: "DestinationDetail.aspx/GetPunctDeInteresById",
+            data: JSON.stringify({ id: punctId }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(response) {
+                var result;
+                try { 
+                    result = JSON.parse(response.d); 
+                } catch (e) { 
+                    updateTips('Eroare la procesarea răspunsului server'); 
+                    return;
+                }
+                
+                if (result && result.Denumire) {
+                    $("#edit-id-punct").val(result.Id_PunctDeInteres);
+                    $("#edit-denumire-punct").val(result.Denumire);
+                    $("#edit-tip-punct").val(result.Tip);
+                    $("#edit-descriere-punct").val(result.Descriere || '');
+                    $("#dialog-edit-punct").dialog("open");
+                } else {
+                    updateTips('Nu s-au putut incarca datele pentru editare.');
+                }
+            },
+            error: function(xhr, status, error) {
+                updateTips('A aparut o eroare la incarcarea datelor pentru editare.');
+            }
+        });
+    });
+
+    $(document).on('click', '.delete-punct-dest', function(e) {
+        e.preventDefault();
+        var punctId = $(this).data('id');
+        var punctName = $(this).data('name');
+        
+        $("#delete-punct-name").text(punctName);
+        $("#dialog-delete-punct").data('punctId', punctId).dialog("open");
+    });
+}
+
+function loadPunctDetailsWithImages(punctId) {
+    // Load basic details first
+    $.ajax({
+        type: "POST",
+        url: "DestinationDetail.aspx/GetPunctDeInteresById",
+        data: JSON.stringify({ id: punctId }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(response) {
+            var result;
+            try { 
+                result = JSON.parse(response.d); 
+            } catch (e) { 
+                $("#view-punct-content").html('<div class="error-punct">Eroare la procesarea răspunsului server</div>');
+                return;
+            }
+            
+            if (result && result.Denumire) {
+                // Display basic info
+                var content = "<div class='punct-details-full'>" +
+                             "<div class='detail-section'>" +
+                             "<h3>Informatii generale</h3>" +
+                             "<div class='detail-row'><strong>Denumire:</strong> " + result.Denumire + "</div>" +
+                             "<div class='detail-row'><strong>Tip:</strong> " + result.Tip + "</div>" +
+                             "<div class='detail-row description'><strong>Descriere:</strong><br>" + (result.Descriere || '-') + "</div>" +
+                             "</div>" +
+                             "<div class='detail-section'>" +
+                             "<h3>Imagini <i class='fas fa-spinner fa-spin'></i></h3>" +
+                             "<div id='punct-images-container'>Se incarca imaginile...</div>" +
+                             "</div>" +
+                             "</div>";
+                             
+                $("#view-punct-content").html(content);
+                
+                // Search for images using Pexels
+                searchPexelsForPunct(result.Denumire, result.Tip);
+            } else {
+                $("#view-punct-content").html('<div class="error-punct">Nu s-au putut incarca detaliile punctului de interes</div>');
+            }
+        },
+        error: function(xhr, status, error) {
+            $("#view-punct-content").html('<div class="error-punct">A aparut o eroare la incarcarea detaliilor</div>');
+        }
+    });
+}
+
+function searchPexelsForPunct(denumire, tip) {
+    var searchQuery = denumire + ' ' + tip;
+    
+    $.ajax({
+        type: "POST",
+        url: "Index.aspx/SearchPexelsImages",
+        data: JSON.stringify({ query: searchQuery, perPage: 3 }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(response) {
+            var result;
+            try { 
+                result = JSON.parse(response.d); 
+            } catch (e) { 
+                displayNoImages();
+                return;
+            }
+            
+            if (result.success && result.photos && result.photos.length > 0) {
+                displayPunctImages(result.photos);
+            } else {
+                displayNoImages();
+            }
+        },
+        error: function(xhr, status, error) {
+            displayNoImages();
+        }
+    });
+}
+
+function displayPunctImages(photos) {
+    var imagesHtml = "<div class='punct-images-gallery'>";
+    
+    photos.forEach(function(photo, index) {
+        imagesHtml += "<div class='punct-gallery-item'>" +
+                     "<img src='" + photo.Src.Medium + "' alt='Imagine " + (index + 1) + "' class='punct-gallery-image' onclick='showImageModal(\"" + photo.Src.Original + "\")'>" +
+                     "<div class='image-credit'>Foto: " + photo.Photographer + "</div>" +
+                     "</div>";
     });
     
-    // Bind click events using event delegation after all images are added
-    gallery.on('click', '.gallery-item', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        var imageUrl = $(this).find('.gallery-image').data('url');
-        console.log('Gallery item clicked, URL:', imageUrl);
-        
-        if (imageUrl) {
-            showImageModal(imageUrl);
+    imagesHtml += "</div>";
+    
+    // Update the container with images
+    $("#punct-images-container").html(imagesHtml);
+    $(".detail-section h3").html("Imagini <i class='fas fa-images'></i>");
+}
+
+function displayNoImages() {
+    $("#punct-images-container").html('<div class="no-images">Nu s-au gasit imagini pentru acest punct de interes</div>');
+    $(".detail-section h3").html("Imagini <i class='fas fa-exclamation-triangle'></i>");
+}
+
+function showImageModal(imageUrl) {
+    var modal = $('<div class="image-modal">').append(
+        $('<div class="modal-content">').append(
+            $('<button class="close-modal">&times;</button>').click(function() {
+                modal.remove();
+            }),
+            $('<img class="modal-image">').attr('src', imageUrl).on('error', function() {
+                $(this).replaceWith($('<div class="image-error">Nu s-a putut incarca imaginea</div>'));
+            })
+        )
+    );
+    
+    modal.click(function(e) {
+        if (e.target === this) {
+            modal.remove();
         }
     });
     
-    console.log('Gallery setup complete, items added:', images.length);
-}
-
-function formatPrice(price) {
-    if (!price || price === 0) {
-        return 'Gratuit';
-    }
-    return price.toFixed(2) + ' €';
+    $(document).keyup(function(e) {
+        if (e.keyCode === 27) { // ESC key
+            modal.remove();
+            $(document).off('keyup');
+        }
+    });
+    
+    $('body').append(modal);
 }
 
 function showError(message) {
     $('#error-text').text(message);
     $('#error-message').show();
-    $('#loading-indicator').hide();
     $('#destination-content').hide();
-}
-
-function showImageModal(imageUrl) {
-    console.log('showImageModal called with URL:', imageUrl);
-    
-    // Remove any existing modals first
-    $('.image-modal').remove();
-    
-    // Create modal for image viewing with unique ID
-    var modalId = 'image-modal-' + Date.now();
-    var modal = $('<div class="image-modal" id="' + modalId + '" style="display: none;">' +
-        '<div class="modal-content">' +
-            '<span class="close-modal">&times;</span>' +
-            '<img src="' + imageUrl + '" alt="Imagine destinație" class="modal-image">' +
-        '</div>' +
-    '</div>');
-    
-    $('body').append(modal);
-    
-    // Show modal with fade effect
-    modal.fadeIn(300);
-    
-    console.log('Modal created and shown with ID:', modalId);
-    
-    // Close modal handlers
-    modal.find('.close-modal').on('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('Close button clicked');
-        modal.fadeOut(300, function() {
-            modal.remove();
-        });
-    });
-    
-    modal.on('click', function(e) {
-        if (e.target === this) {
-            console.log('Background clicked');
-            modal.fadeOut(300, function() {
-                modal.remove();
-            });
-        }
-    });
-    
-    // ESC key to close - bind to document but remove after modal is closed
-    var escHandler = function(e) {
-        if (e.keyCode === 27) { // ESC key
-            modal.fadeOut(300, function() {
-                modal.remove();
-            });
-            $(document).off('keyup', escHandler);
-        }
-    };
-    
-    $(document).on('keyup', escHandler);
-    
-    // Auto-remove handler when modal is removed
-    modal.on('remove', function() {
-        $(document).off('keyup', escHandler);
-    });
+    $('#loading-indicator').hide();
 }

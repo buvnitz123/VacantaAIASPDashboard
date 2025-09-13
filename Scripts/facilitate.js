@@ -1,4 +1,3 @@
-
 $(document).ready(function () {
     // Initialize modal dialogs
     initializeFacilitateModals();
@@ -181,19 +180,17 @@ function updateFacilitateTable() {
                 data: null,
                 className: 'dt-left',
                 render: function(data, type, row) {
-                    return `
-                        <div class="action-buttons">
-                            <button class="btn-action view" title="Vizualizează" data-id="${row.Id_Facilitate}">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="btn-action edit" title="Editează" data-id="${row.Id_Facilitate}">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-action delete" title="Șterge" data-id="${row.Id_Facilitate}" data-denumire="${row.Denumire}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    `;
+                    return "<div class='action-buttons'>" +
+                           "<button class='btn-action view' title='Vizualizează' data-id='" + row.Id_Facilitate + "'>" +
+                           "<i class='fas fa-eye'></i>" +
+                           "</button>" +
+                           "<button class='btn-action edit' title='Editează' data-id='" + row.Id_Facilitate + "'>" +
+                           "<i class='fas fa-edit'></i>" +
+                           "</button>" +
+                           "<button class='btn-action delete' title='Șterge' data-id='" + row.Id_Facilitate + "' data-denumire='" + row.Denumire + "'>" +
+                           "<i class='fas fa-trash'></i>" +
+                           "</button>" +
+                           "</div>";
                 }
             }
         ]
@@ -218,7 +215,6 @@ function updateFacilitateTable() {
         var id = $button.data('id');
         var denumire = $button.data('denumire');
         
-
         $("#delete-facilitate-name").text(denumire);
         $("#dialog-delete-facilitate").data('id', id).dialog("open");
     });
@@ -312,7 +308,13 @@ function addFacilitate() {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function(response) {
-            var result = JSON.parse(response.d);
+            var result;
+            try { 
+                result = JSON.parse(response.d); 
+            } catch (e) { 
+                result = { success: false, message: 'Eroare la procesarea răspunsului server' }; 
+            }
+            
             if (result.success) {
                 // Refresh the table
                 $('#tblFacilitati').DataTable().ajax.reload();
@@ -322,7 +324,6 @@ function addFacilitate() {
             }
         },
         error: function(xhr, status, error) {
-            console.error("Add facilitate error:", error);
             updateTips('A apărut o eroare la adăugarea facilității.');
         }
     });
@@ -336,18 +337,24 @@ function viewFacilitate(id) {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function(response) {
-            var data = JSON.parse(response.d);
+            var data;
+            try { 
+                data = JSON.parse(response.d); 
+            } catch (e) { 
+                updateTips('Eroare la procesarea răspunsului server'); 
+                return;
+            }
+            
             if (data) {
                 $("#view-denumire-facilitate").text(data.Denumire);
                 $("#view-descriere-facilitate").text(data.Descriere);
                 $("#dialog-view-facilitate").dialog("open");
             } else {
-                updateTips('Nu s-a putut încărca detaliile facilității.');
+                updateTips('Nu s-a putut incarca detaliile facilitatii.');
             }
         },
         error: function(xhr, status, error) {
-            console.error("View facilitate error:", error);
-            updateTips('A apărut o eroare la încărcarea detaliilor.');
+            updateTips('A aparut o eroare la incarcarea detaliilor.');
         }
     });
 }
@@ -360,26 +367,32 @@ function editFacilitate(id) {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function(response) {
-            var data = JSON.parse(response.d);
+            var data;
+            try { 
+                data = JSON.parse(response.d); 
+            } catch (e) { 
+                updateTips('Eroare la procesarea răspunsului server'); 
+                return;
+            }
+            
             if (data) {
                 $("#edit-id-facilitate").val(data.Id_Facilitate);
                 $("#edit-denumire-facilitate").val(data.Denumire);
                 $("#edit-descriere-facilitate").val(data.Descriere);
                 $("#dialog-edit-facilitate").dialog("open");
             } else {
-                updateTips('Nu s-a putut încărca facilitatea pentru editare.');
+                updateTips('Nu s-a putut incarca facilitatea pentru editare.');
             }
         },
         error: function(xhr, status, error) {
-            console.error("Edit facilitate error:", error);
-            updateTips('A apărut o eroare la încărcarea datelor pentru editare.');
+            updateTips('A aparut o eroare la incarcarea datelor pentru editare.');
         }
     });
 }
 
 function confirmDeleteFacilitate(id, denumire) {
     // Store the original button that was clicked
-    var $deleteButton = $(`button.delete[data-id="${id}"]`);
+    var $deleteButton = $("button.delete[data-id='" + id + "']");
     $("#dialog-delete-facilitate").data({
         'id': id,
         'deleteButton': $deleteButton
@@ -406,7 +419,13 @@ function deleteFacilitate() {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function(response) {
-            var result = JSON.parse(response.d);
+            var result;
+            try { 
+                result = JSON.parse(response.d); 
+            } catch (e) { 
+                result = { success: false, message: 'Eroare la procesarea răspunsului server' }; 
+            }
+            
             if (result.success) {
                 $('#tblFacilitati').DataTable().ajax.reload();
             } else {
@@ -416,7 +435,6 @@ function deleteFacilitate() {
             }
         },
         error: function(xhr, status, error) {
-            console.error("Delete facilitate error:", error);
             updateTips('A apărut o eroare la ștergerea facilității.');
             $modalButton.prop('disabled', false);
             $deleteButton.html('<i class="fas fa-trash"></i>').prop('disabled', false);
@@ -440,7 +458,13 @@ function updateFacilitate() {
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function(response) {
-            var result = JSON.parse(response.d);
+            var result;
+            try { 
+                result = JSON.parse(response.d); 
+            } catch (e) { 
+                result = { success: false, message: 'Eroare la procesarea răspunsului server' }; 
+            }
+            
             if (result.success) {
                 // Refresh the table and close the edit dialog
                 $('#tblFacilitati').DataTable().ajax.reload();
@@ -451,7 +475,6 @@ function updateFacilitate() {
             }
         },
         error: function(xhr, status, error) {
-            console.error("Update facilitate error:", error);
             updateEditTips('A apărut o eroare la actualizarea facilității.');
         }
     });

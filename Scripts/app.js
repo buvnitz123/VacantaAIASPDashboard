@@ -17,7 +17,7 @@
 
             if (sectionName === 'utilizatori') {
                 initUtilizatoriTable();
-            } else if (sectionName === 'categorii') {
+            } else if (sectionName === 'categorii') {   
                 initCategoriiTable();
             } else if (sectionName === 'destinatii') {
                 initDestinatiiTable();
@@ -108,6 +108,12 @@
     var utilizatoriInited = false;
     function initUtilizatoriTable() {
         if (utilizatoriInited || typeof $ === 'undefined' || !$('#tblUtilizatori').length) return;
+        
+        // Check if DataTable is already initialized
+        if ($.fn.DataTable.isDataTable('#tblUtilizatori')) {
+            return; // Don't reinitialize if already exists
+        }
+        
         $('#tblUtilizatori').DataTable({
             ajax: {
                 url: 'Index.aspx/GetUtilizatoriData',
@@ -116,7 +122,11 @@
                 dataType: 'json',
                 dataSrc: function (json) {
                     var data = [];
-                    try { data = JSON.parse(json.d); } catch (e) { }
+                    try { 
+                        data = JSON.parse(json.d); 
+                    } catch (e) { 
+                        console.error('Error parsing utilizatori data:', e);
+                    }
                     // Optional: mascare parola la sursă dacă tot apare
                     data.forEach(function(u){ if (u.Parola) u.Parola = '***'; });
                     return data;
@@ -139,7 +149,7 @@
                     render: function(row){
                         return "<div class='action-buttons'>" +
                                "<button class='btn-action view-user' title='Detalii' data-id='" + row.Id_Utilizator + "'><i class='fas fa-eye'></i></button>" +
-                               "<button class='btn-action delete-user' title='Șterge' data-id='" + row.Id_Utilizator + "' data-name='" + row.Nume + " " + row.Prenume + "'><i class='fas fa-trash'></i></button>" +
+                               "<button class='btn-action delete-user' title='Sterge' data-id='" + row.Id_Utilizator + "' data-name='" + row.Nume + " " + row.Prenume + "'><i class='fas fa-trash'></i></button>" +
                                "</div>";
                     }
                 }
@@ -160,10 +170,10 @@
         var deleteDialog = $("#dialog-delete-utilizator");
         if (!deleteDialog.length) {
             $('body').append(
-                "<div id='dialog-delete-utilizator' title='Confirmare ștergere' style='display:none;'>" +
+                "<div id='dialog-delete-utilizator' title='Confirmare stergere' style='display:none;'>" +
                 "<p class='delete-message'><span class='ui-icon ui-icon-alert' style='float:left;margin:12px 12px 20px 0;'></span>" +
-                "Sigur doriți să ștergeți utilizatorul <strong><span id='delete-utilizator-name'></span></strong>?</p>" +
-                "<p class='delete-warning'><em>Această acțiune este ireversibilă.</em></p>" +
+                "Sigur doriti sa stergeti utilizatorul <strong><span id='delete-utilizator-name'></span></strong>?</p>" +
+                "<p class='delete-warning'><em>Aceasta actiune este ireversibila.</em></p>" +
                 "</div>"
             );
             deleteDialog = $("#dialog-delete-utilizator");
@@ -181,7 +191,7 @@
                     modal: true,
                     width: 400,
                     buttons: {
-                        "Șterge": function(){
+                        "Sterge": function(){
                             var dlg = $(this);
                             $.ajax({
                                 type: "POST",
@@ -190,19 +200,25 @@
                                 contentType: "application/json; charset=utf-8",
                                 dataType: "json"
                             }).done(function(resp){
-                                var r = JSON.parse(resp.d);
+                                var r;
+                                try { 
+                                    r = JSON.parse(resp.d); 
+                                } catch (e) { 
+                                    r = { success: false, message: 'Eroare la procesarea raspunsului server' }; 
+                                }
+                                
                                 if (r.success) {
                                     $('#tblUtilizatori').DataTable().ajax.reload();
-                            } else {
-                                alert(r.message || 'Eroare la ștergere.');
-                            }
-                        }).fail(function(){
-                            alert('Eroare la comunicare server.');
-                        }).always(function(){
-                            dlg.dialog('close');
-                        });
+                                } else {
+                                    alert(r.message || 'Eroare la stergere.');
+                                }
+                            }).fail(function(){
+                                alert('Eroare la comunicare server.');
+                            }).always(function(){
+                                dlg.dialog('close');
+                            });
                         },
-                        "Anulează": function(){ $(this).dialog('close'); }
+                        "Anuleaza": function(){ $(this).dialog('close'); }
                     }
                 });
             });
@@ -213,6 +229,12 @@
     var categoriiInited = false;
     function initCategoriiTable() {
         if (categoriiInited || typeof $ === 'undefined' || !$('#tblCategorii').length) return;
+        
+        // Check if DataTable is already initialized
+        if ($.fn.DataTable.isDataTable('#tblCategorii')) {
+            return; // Don't reinitialize if already exists
+        }
+        
         $('#tblCategorii').DataTable({
             ajax: {
                 url: 'Index.aspx/GetCategoriiVacantaData',
@@ -221,7 +243,11 @@
                 dataType: 'json',
                 dataSrc: function (json) {
                     var data = [];
-                    try { data = JSON.parse(json.d); } catch (e) { }
+                    try { 
+                        data = JSON.parse(json.d); 
+                    } catch (e) { 
+                        console.error('Error parsing categorii data:', e);
+                    }
                     return data;
                 }
             },
@@ -233,8 +259,7 @@
                     orderable: false,
                     render: function (data) {
                         return data
-                            ? "<button class='btn-action view' title='Vizualizare imagine' data-image='" + data + "'><i class='fas fa-search'></i></button>"
-                            : "";
+                            ? "<button class='btn-action view' title='Vizualizare imagine'><i class='fas fa-search'></i></button>" : "";
                     }
                 },
                 {
@@ -243,29 +268,12 @@
                     searchable: false,
                     render: function (data, type, row) {
                         return "<div class='action-buttons'>" +
-                               "<button class='btn-action edit' title='Modifică' data-id='" + row.Id_CategorieVacanta + "'><i class='fas fa-edit'></i></button>" +
-                               "<button class='btn-action delete' title='Șterge' data-id='" + row.Id_CategorieVacanta + "' data-name='" + row.Denumire + "'><i class='fas fa-trash'></i></button>" +
+                               "<button class='btn-action edit' title='Modifica' data-id='" + row.Id_CategorieVacanta + "'><i class='fas fa-edit'></i></button>" +
+                               "<button class='btn-action delete' title='Sterge' data-id='" + row.Id_CategorieVacanta + "' data-name='" + row.Denumire + "'><i class='fas fa-trash'></i></button>" +
                                "</div>";
                     }
                 }
             ]
-        });
-        
-        // View image (ONLY for categories). Stop propagation so destination handler not triggered.
-        $('#tblCategorii tbody').on('click', '.btn-action.view', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var imageUrl = $(this).data('image');
-            if (!imageUrl) return;
-            $('#preview-img').attr('src', imageUrl);
-            $('#dialog-preview-categorie').dialog({
-                modal: true,
-                width: 'auto',
-                maxWidth: '90%',
-                height: 'auto',
-                maxHeight: '90vh',
-                buttons: { "Închide": function () { $(this).dialog('close'); } }
-            });
         });
 
         // Delete category
@@ -284,7 +292,7 @@
                 width: 400,
                 modal: true,
                 buttons: {
-                    "Șterge": function() {
+                    "Sterge": function() {
                         var originalContent = deleteButton.html();
                         deleteButton.html('<i class="fas fa-spinner fa-spin"></i>');
                         deleteButton.prop('disabled', true);
@@ -295,7 +303,13 @@
                             contentType: "application/json; charset=utf-8",
                             dataType: "json",
                             success: function(response) {
-                                var result = JSON.parse(response.d);
+                                var result;
+                                try { 
+                                    result = JSON.parse(response.d); 
+                                } catch (e) { 
+                                    result = { success: false, message: 'Eroare la procesarea raspunsului server' }; 
+                                }
+                                
                                 if (result.success) {
                                     table.row(row).remove().draw(false);
                                 } else {
@@ -306,7 +320,7 @@
                             complete: function() { deleteDialog.dialog("close"); }
                         });
                     },
-                    "Anulează": function() { $(this).dialog("close"); }
+                    "Anuleaza": function() { $(this).dialog("close"); }
                 }
             });
         });
@@ -318,6 +332,12 @@
     var destinatiiInited = false;
     function initDestinatiiTable() {
         if (destinatiiInited || typeof $ === 'undefined' || !$('#tblDestinatii').length) return;
+        
+        // Check if DataTable is already initialized
+        if ($.fn.DataTable.isDataTable('#tblDestinatii')) {
+            return; // Don't reinitialize if already exists
+        }
+        
         $('#tblDestinatii').DataTable({
             ajax: {
                 url: 'Index.aspx/GetDestinatiiData',
@@ -326,7 +346,11 @@
                 dataType: 'json',
                 dataSrc: function (json) {
                     var data = [];
-                    try { data = JSON.parse(json.d); } catch (e) { }
+                    try { 
+                        data = JSON.parse(json.d); 
+                    } catch (e) { 
+                        console.error('Error parsing destinatii data:', e);
+                    }
                     return data;
                 }
             },
@@ -341,7 +365,7 @@
                     render: function (data, type, row) {
                         return "<div class='action-buttons'>" +
                                "<button class='btn-action view view-destination' title='Detalii' data-id='" + row.Id_Destinatie + "'><i class='fas fa-eye'></i></button>" +
-                               "<button class='btn-action delete delete-destination' title='Șterge' data-id='" + row.Id_Destinatie + "' data-name='" + row.Denumire + "'><i class='fas fa-trash'></i></button>" +
+                               "<button class='btn-action delete delete-destination' title='Sterge' data-id='" + row.Id_Destinatie + "' data-name='" + row.Denumire + "'><i class='fas fa-trash'></i></button>" +
                                "</div>";
                     }
                 }
@@ -372,7 +396,7 @@
                   width: 400,
                   modal: true,
                   buttons: {
-                      "Șterge": function () {
+                      "Sterge": function () {
                           var dialogRef = $(this);
                           $.ajax({
                               type: "POST",
@@ -381,18 +405,24 @@
                               contentType: "application/json; charset=utf-8",
                               dataType: "json",
                               success: function (response) {
-                                  var result = JSON.parse(response.d);
+                                  var result;
+                                  try { 
+                                      result = JSON.parse(response.d); 
+                                  } catch (e) { 
+                                      result = { success: false, message: 'Eroare la procesarea raspunsului server' }; 
+                                  }
+                                  
                                   if (result && result.success) {
                                       $('#tblDestinatii').DataTable().ajax.reload();
                                       dialogRef.dialog("close");
                                   } else {
-                                      alert("Eroare: " + (result ? result.message : 'necunoscută'));
+                                      alert("Eroare: " + (result ? result.message : 'necunoscuta'));
                                   }
                               },
-                              error: function () { alert("A apărut o eroare la ștergere."); }
+                              error: function () { alert("A aparut o eroare la stergere."); }
                           });
                       },
-                      "Anulează": function () { $(this).dialog("close"); }
+                      "Anuleaza": function () { $(this).dialog("close"); }
                   }
               });
           });
@@ -403,6 +433,12 @@
     var facilitatiInited = false;
     function initFacilitatiTable() {
         if (facilitatiInited || typeof $ === 'undefined' || !$('#tblFacilitati').length) return;
+        
+        // Check if DataTable is already initialized
+        if ($.fn.DataTable.isDataTable('#tblFacilitati')) {
+            return; // Don't reinitialize if already exists
+        }
+        
         var table = $('#tblFacilitati').DataTable({
             ajax: {
                 url: 'Index.aspx/GetFacilitatiData',
@@ -418,14 +454,68 @@
             columns: [
                 { data: 'Id_Facilitate', className: 'dt-left' },
                 { data: 'Denumire', className: 'dt-left' },
-                { data: 'Descriere', className: 'descriere-cell', render: function(data, type) { if (type === 'display' && data) { const previewText = data.length > 10 ? data.substring(0, 10) + '...' : data; return "<div class='descriere-content'><button class='btn-action view-descriere' title='Vizualizează descrierea' data-descriere='" + data + "'><i class='fas fa-search'></i></button><span class='desc-preview'>" + previewText + "</span></div>"; } return ''; } },
-                { data: null, orderable: false, className: 'dt-left', render: function(row){ return "<div class='action-buttons'><button class='btn-action edit' title='Editează' data-id='" + row.Id_Facilitate + "'><i class='fas fa-edit'></i></button><button class='btn-action delete' title='Șterge' data-id='" + row.Id_Facilitate + "' data-denumire='" + row.Denumire + "'><i class='fas fa-trash'></i></button></div>"; } }
+                { 
+                    data: 'Descriere', 
+                    className: 'descriere-cell', 
+                    render: function (data, type) { 
+                        if (type === 'display' && data) { 
+                            const previewText = data.length > 10 ? data.substring(0, 10) + '...' : data; 
+                            return "<div class='descriere-content'>" +
+                                   "<button class='btn-action view-descriere' title='Vizualizeaza descrierea' data-descriere='" + data + "'>" +
+                                   "<i class='fas fa-eye'></i>" +
+                                   "</button>" +
+                                   "<span class='desc-preview'>" + previewText + "</span>" +
+                                   "</div>"; 
+                        } 
+                        return ''; 
+                    } 
+                },
+                { 
+                    data: null, 
+                    orderable: false, 
+                    className: 'dt-left', 
+                    render: function(row){ 
+                        return "<div class='action-buttons'>" +
+                               "<button class='btn-action edit' title='Editeaza' data-id='" + row.Id_Facilitate + "'>" +
+                               "<i class='fas fa-edit'></i>" +
+                               "</button>" +
+                               "<button class='btn-action delete' title='Sterge' data-id='" + row.Id_Facilitate + "' data-denumire='" + row.Denumire + "'>" +
+                               "<i class='fas fa-trash'></i>" +
+                               "</button>" +
+                               "</div>"; 
+                    } 
+                }
             ]
         });
 
-        $('#tblFacilitati tbody').on('click', '.btn-action.edit', function() { var id = $(this).data('id'); editFacilitate(id); });
-        $('#tblFacilitati tbody').on('click', '.btn-action.view-descriere', function(e) { e.stopPropagation(); var descriere = $(this).data('descriere'); if (descriere) { $('<div>').html('<p style="max-width: 400px; max-height: 300px; overflow: auto; white-space: pre-wrap;">' + descriere + '</p>').dialog({ title: 'Descriere', width: 550, modal: true, buttons: { 'Închide': function() { $(this).dialog('close'); } } }); } });
-        $('#tblFacilitati tbody').on('click', '.btn-action.delete', function() { var $button = $(this); var id = $button.data('id'); var denumire = $button.data('denumire'); confirmDeleteFacilitate(id, denumire); });
+        $('#tblFacilitati tbody').on('click', '.btn-action.edit', function() { 
+            var id = $(this).data('id'); 
+            editFacilitate(id); 
+        });
+        
+        $('#tblFacilitati tbody').on('click', '.btn-action.view-descriere', function(e) { 
+            e.stopPropagation(); 
+            var descriere = $(this).data('descriere'); 
+            if (descriere) { 
+                $('<div>').html('<p style="max-width: 400px; max-height: 300px; overflow: auto; white-space: pre-wrap;">' + descriere + '</p>').dialog({ 
+                    title: 'Descriere', 
+                    width: 550, 
+                    modal: true, 
+                    buttons: { 
+                        'Inchide': function() { 
+                            $(this).dialog('close'); 
+                        } 
+                    } 
+                }); 
+            } 
+        });
+        
+        $('#tblFacilitati tbody').on('click', '.btn-action.delete', function() { 
+            var $button = $(this); 
+            var id = $button.data('id'); 
+            var denumire = $button.data('denumire'); 
+            confirmDeleteFacilitate(id, denumire); 
+        });
 
         facilitatiInited = true;
     }
@@ -433,6 +523,12 @@
     var puncteInited = false;
     function initPuncteTable() {
         if (puncteInited || typeof $ === 'undefined' || !$('#tblPuncteDeInteres').length) return;
+        
+        // Check if DataTable is already initialized
+        if ($.fn.DataTable.isDataTable('#tblPuncteDeInteres')) {
+            return; // Don't reinitialize if already exists
+        }
+        
         $('#tblPuncteDeInteres').DataTable({
             ajax: {
                 url: 'Index.aspx/GetPuncteInteresData',
@@ -441,24 +537,106 @@
                 dataType: 'json',
                 dataSrc: function (json) {
                     var data = [];
-                    try { data = JSON.parse(json.d); } catch (e) { }
+                    try { 
+                        data = JSON.parse(json.d); 
+                    } catch (e) { 
+                        console.error('Error parsing puncte data:', e);
+                    }
                     return data;
                 }
             },
             columns: [
-                { data: 'Id_PunctDeInteres' },
-                { data: 'Denumire' },
-                { data: 'Descriere' },
-                { data: 'Tip' },
-                { data: 'Id_Destinatie' }
+                { data: 'Id_PunctDeInteres', className: 'dt-left' },
+                { data: 'Denumire', className: 'dt-left' },
+                { data: 'Tip', className: 'dt-left' },
+                { 
+                    data: 'Descriere', 
+                    className: 'dt-left',
+                    render: function(data, type) {
+                        if (type === 'display' && data) {
+                            var previewText = data.length > 50 ? data.substring(0, 50) + '...' : data;
+                            return previewText;
+                        }
+                        return data || '';
+                    }
+                },
+                { 
+                    data: 'Destinatie',
+                    className: 'dt-left',
+                    render: function(data, type, row) {
+                        if (data && data.Denumire) {
+                            return "<a href='DestinationDetail.aspx?id=" + row.Id_Destinatie + "' class='destination-link' title='Vezi detalii destinatie'>" + 
+                                   data.Denumire + " <i class='fas fa-external-link-alt'></i></a>";
+                        }
+                        return 'Destinatie necunoscuta';
+                    }
+                },
+                {
+                    data: null,
+                    orderable: false,
+                    searchable: false,
+                    className: 'dt-left',
+                    render: function(data, type, row) {
+                        return "<div class='action-buttons'>" +
+                               "<button class='btn-action view-punct' title='Vizualizeaza detalii' data-id='" + row.Id_PunctDeInteres + "'>" +
+                               "<i class='fas fa-eye'></i>" +
+                               "</button>" +
+                               "</div>";
+                    }
+                }
             ]
         });
+
+        // View punct de interes details (modal popup)
+        $('#tblPuncteDeInteres tbody').on('click', '.btn-action.view-punct', function(e) {
+            e.stopPropagation();
+            var punctId = $(this).data('id');
+            
+            // Find the row data
+            var table = $('#tblPuncteDeInteres').DataTable();
+            var row = $(this).closest('tr');
+            var rowData = table.row(row).data();
+            
+            if (rowData) {
+                // Create modal dialog content
+                var modalContent = 
+                    "<div class='punct-details'>" +
+                    "<div class='detail-row'><strong>Denumire:</strong> " + (rowData.Denumire || '-') + "</div>" +
+                    "<div class='detail-row'><strong>Tip:</strong> " + (rowData.Tip || '-') + "</div>" +
+                    "<div class='detail-row'><strong>Destinatie:</strong> " + (rowData.Destinatie ? rowData.Destinatie.Denumire : '-') + "</div>" +
+                    "<div class='detail-row description'><strong>Descriere:</strong><br>" + (rowData.Descriere || '-') + "</div>" +
+                    "</div>";
+                
+                // Show modal
+                $('<div>').html(modalContent).dialog({
+                    title: 'Detalii Punct de Interes: ' + rowData.Denumire,
+                    width: 600,
+                    modal: true,
+                    resizable: true,
+                    buttons: {
+                        'Inchide': function() { 
+                            $(this).dialog('close'); 
+                        },
+                        'Vezi Destinatia': function() {
+                            window.location.href = 'DestinationDetail.aspx?id=' + rowData.Id_Destinatie;
+                        }
+                    }
+                });
+            }
+        });
+
         puncteInited = true;
     }
 
     var sugestiiInited = false;
     function initSugestiiTable() {
         if (sugestiiInited || typeof $ === 'undefined' || !$('#tblSugestii').length) return;
+        
+        // Check if DataTable is already initialized
+        if ($.fn.DataTable.isDataTable('#tblSugestii')) {
+            return; // Don't reinitialize if already exists
+        }
+        
         $('#tblSugestii').DataTable({
             ajax: {
                 url: 'Index.aspx/GetSugestiiData',
@@ -467,7 +645,11 @@
                 dataType: 'json',
                 dataSrc: function (json) {
                     var data = [];
-                    try { data = JSON.parse(json.d); } catch (e) { }
+                    try { 
+                        data = JSON.parse(json.d); 
+                    } catch (e) { 
+                        console.error('Error parsing sugestii data:', e);
+                    }
                     return data;
                 }
             },

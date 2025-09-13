@@ -27,6 +27,10 @@ namespace WebAdminDashboard.Classes.Database
                 .Property(d => d.Id_Destinatie)
                 .HasDatabaseGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None);
 
+            modelBuilder.Entity<PunctDeInteres>()
+                .Property(p => p.Id_PunctDeInteres)
+                .HasDatabaseGeneratedOption(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None);
+
             base.OnModelCreating(modelBuilder);
         }
 
