@@ -1,4 +1,4 @@
-$(document).ready(function() {
+﻿$(document).ready(function() {
     // Get destination ID from URL parameter
     var urlParams = new URLSearchParams(window.location.search);
     var destinationId = urlParams.get('id');
@@ -71,6 +71,9 @@ function loadDestinationDetails(destinationId) {
                     try {
                         initPuncteInteresManagement();
                         initPuncteInteresTable(parseInt(destinationId));
+                        initCategoriesManagement(); // Initialize categories management
+                        // Load categories after everything is initialized
+                        loadDestinationCategories(window.currentDestinationId);
                     } catch (e) {
                         console.error('Error initializing puncte de interes:', e);
                         showError('Eroare la initializarea punctelor de interes: ' + e.message);
@@ -715,4 +718,348 @@ function showError(message) {
     $('#error-message').show();
     $('#destination-content').hide();
     $('#loading-indicator').hide();
+}
+
+function loadDestinationCategories(destinationId) {
+    console.log('Loading categories for destination:', destinationId);
+    
+    // Show loading state for categories
+    var categoriesContainer = $('#categories-container');
+    categoriesContainer.html('<div class="categories-loading"><i class="fas fa-spinner fa-spin"></i>Se încarcă categoriile...</div>');
+    $('#no-categories-message').hide();
+    
+    $.ajax({
+        type: "POST",
+        url: "DestinationDetail.aspx/GetCategoriiByDestinatie",
+        data: JSON.stringify({ destinatieId: parseInt(destinationId) }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(response) {
+            console.log('Categories response received:', response);
+            
+            var result;
+            try { 
+                result = JSON.parse(response.d); 
+                console.log('Parsed categories result:', result);
+            } catch (e) { 
+                console.error('Error parsing categories response:', e);
+                console.error('Raw response d:', response.d);
+                showNoCategoriesMessage('Eroare la procesarea răspunsului categoriilor');
+                return;
+            }
+            
+            if (result.success) {
+                if (result.categories && result.categories.length > 0) {
+                    console.log('Displaying categories:', result.categories);
+                    displayDestinationCategories(result.categories);
+                } else {
+                    console.log('No categories found for destination');
+                    showNoCategoriesMessage();
+                }
+            } else {
+                console.error('Categories request failed:', result.message);
+                showNoCategoriesMessage('Eroare: ' + (result.message || 'Necunoscut'));
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Ajax error loading categories:', error);
+            console.error('Status:', xhr.status);
+            console.error('Response:', xhr.responseText);
+            showNoCategoriesMessage('Eroare de comunicare cu serverul');
+        }
+    });
+}
+
+function displayDestinationCategories(categories) {
+    console.log('Displaying categories:', categories);
+    
+    var categoriesContainer = $('#categories-container');
+    categoriesContainer.empty();
+    
+    categories.forEach(function(category, index) {
+        var categoryHtml = '<div class="category-item" data-category-id="' + category.Id_CategorieVacanta + '">';
+        
+        // Category image container
+        categoryHtml += '<div class="category-image-container">';
+        
+        if (category.ImagineUrl && category.ImagineUrl.trim() !== '') {
+            categoryHtml += '<img src="' + category.ImagineUrl + '" alt="' + category.Denumire + '" class="category-image" onerror="this.parentNode.innerHTML=\'<div class=&quot;category-default-image&quot;><i class=&quot;fas fa-tag&quot;></i></div>\'">';
+            categoryHtml += '<div class="category-overlay-name">' + category.Denumire + '</div>';
+        } else {
+            categoryHtml += '<div class="category-default-image"><i class="fas fa-tag"></i></div>';
+        }
+        
+        categoryHtml += '</div>';
+        
+        // Category content
+        categoryHtml += '<div class="category-content">';
+        categoryHtml += '<h4 class="category-name">' + category.Denumire + '</h4>';
+        categoryHtml += '</div>';
+        
+        categoryHtml += '</div>';
+        
+        var categoryElement = $(categoryHtml);
+        
+        // Add click handler for category (optional - could navigate to category details)
+        categoryElement.click(function() {
+            console.log('Clicked category:', category.Denumire);
+            // You could implement navigation to category details here
+            // window.location.href = 'CategoryDetail.aspx?id=' + category.Id_CategorieVacanta;
+        });
+        
+        categoriesContainer.append(categoryElement);
+    });
+    
+    $('#no-categories-message').hide();
+}
+
+function showNoCategoriesMessage(errorMessage) {
+    $('#categories-container').empty();
+    var message = $('#no-categories-message');
+    
+    if (errorMessage) {
+        message.find('p').text(errorMessage);
+        message.find('i').removeClass('fa-tag').addClass('fa-exclamation-triangle');
+    } else {
+        message.find('p').text('Nu sunt categorii asociate cu această destinație.');
+        message.find('i').removeClass('fa-exclamation-triangle').addClass('fa-tag');
+    }
+    
+    message.show();
+}
+
+// Categories Management Functions
+function initCategoriesManagement() {
+    // Manage Categories button click
+    $('#btn-manage-categories').click(function() {
+        openCategoriesManagementModal();
+    });
+}
+
+function openCategoriesManagementModal() {
+    console.log('Opening categories management modal');
+    
+    // Initialize and open the modal
+    $("#dialog-manage-categories").dialog({
+        width: 600,
+        height: 500,
+        modal: true,
+        resizable: false,
+        buttons: {
+            "Închide": function() {
+                $(this).dialog("close");
+                // Refresh categories display after closing
+                loadDestinationCategories(window.currentDestinationId);
+            }
+        },
+        open: function() {
+            loadCategoriesManagementData();
+        }
+    });
+}
+
+function loadCategoriesManagementData() {
+    // Load current categories and available categories in parallel
+    loadCurrentCategoriesForManagement();
+    loadAvailableCategoriesForSelection();
+}
+
+function loadCurrentCategoriesForManagement() {
+    var currentList = $('#current-categories-list');
+    currentList.html('<div class="categories-loading-small"><i class="fas fa-spinner fa-spin"></i>Se încarcă categoriile curente...</div>');
+    
+    $.ajax({
+        type: "POST",
+        url: "DestinationDetail.aspx/GetCategoriiByDestinatie",
+        data: JSON.stringify({ destinatieId: window.currentDestinationId }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(response) {
+            var result;
+            try { 
+                result = JSON.parse(response.d); 
+            } catch (e) { 
+                console.error('Error parsing current categories response:', e);
+                currentList.html('<div class="no-current-categories">Eroare la încărcarea categoriilor curente</div>');
+                return;
+            }
+            
+            if (result.success && result.categories && result.categories.length > 0) {
+                displayCurrentCategoriesInModal(result.categories);
+            } else {
+                currentList.html('<div class="no-current-categories">Nu sunt categorii asociate cu această destinație</div>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Ajax error loading current categories:', error);
+            currentList.html('<div class="no-current-categories">Eroare la încărcarea categoriilor</div>');
+        }
+    });
+}
+
+function displayCurrentCategoriesInModal(categories) {
+    var currentList = $('#current-categories-list');
+    currentList.empty();
+    
+    categories.forEach(function(category) {
+        var categoryItem = $('<div class="current-category-item">');
+        categoryItem.append('<span class="category-name">' + category.Denumire + '</span>');
+        categoryItem.append('<button class="btn-remove-category" title="Elimină categoria" data-category-id="' + category.Id_CategorieVacanta + '" data-category-name="' + category.Denumire + '"><i class="fas fa-times"></i></button>');
+        
+        currentList.append(categoryItem);
+    });
+    
+    // Bind remove category events
+    $('.btn-remove-category').click(function(e) {
+        e.stopPropagation();
+        var categoryId = $(this).data('category-id');
+        var categoryName = $(this).data('category-name');
+        confirmRemoveCategory(categoryId, categoryName);
+    });
+}
+
+function loadAvailableCategoriesForSelection() {
+    var select = $('#available-categories');
+    select.html('<option value="">Se încarcă...</option>').prop('disabled', true);
+    
+    $.ajax({
+        type: "POST",
+        url: "DestinationDetail.aspx/GetAllAvailableCategories",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(response) {
+            var result;
+            try { 
+                result = JSON.parse(response.d); 
+            } catch (e) { 
+                console.error('Error parsing available categories response:', e);
+                select.html('<option value="">Eroare la încărcare</option>');
+                return;
+            }
+            
+            if (result.success && result.categories) {
+                populateAvailableCategoriesSelect(result.categories);
+            } else {
+                select.html('<option value="">Nu există categorii disponibile</option>');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Ajax error loading available categories:', error);
+            select.html('<option value="">Eroare la încărcare</option>');
+        },
+        complete: function() {
+            select.prop('disabled', false);
+        }
+    });
+}
+
+function populateAvailableCategoriesSelect(categories) {
+    var select = $('#available-categories');
+    select.empty().append('<option value="">-- Selectează o categorie --</option>');
+    
+    categories.forEach(function(category) {
+        select.append('<option value="' + category.Id_CategorieVacanta + '">' + category.Denumire + '</option>');
+    });
+    
+    // Bind add category button
+    $('#btn-add-selected-category').off('click').on('click', function() {
+        var selectedCategoryId = select.val();
+        if (selectedCategoryId) {
+            addCategoryToDestination(parseInt(selectedCategoryId));
+        } else {
+            alert('Vă rugăm să selectați o categorie');
+        }
+    });
+}
+
+function addCategoryToDestination(categoryId) {
+    var button = $('#btn-add-selected-category');
+    var originalText = button.html();
+    button.html('<i class="fas fa-spinner fa-spin"></i> Adaugă...').prop('disabled', true);
+    
+    $.ajax({
+        type: "POST",
+        url: "DestinationDetail.aspx/AddCategoryToDestination",
+        data: JSON.stringify({ destinatieId: window.currentDestinationId, categorieId: categoryId }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(response) {
+            var result;
+            try { 
+                result = JSON.parse(response.d); 
+            } catch (e) { 
+                alert('Eroare la procesarea răspunsului server');
+                return;
+            }
+            
+            if (result.success) {
+                // Reset selection and reload current categories
+                $('#available-categories').val('');
+                loadCurrentCategoriesForManagement();
+                alert('Categoria a fost adăugată cu succes!');
+            } else {
+                alert('Eroare: ' + result.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Ajax error adding category:', error);
+            alert('Eroare la adăugarea categoriei');
+        },
+        complete: function() {
+            button.html(originalText).prop('disabled', false);
+        }
+    });
+}
+
+function confirmRemoveCategory(categoryId, categoryName) {
+    $('#remove-category-name').text(categoryName);
+    
+    $("#dialog-remove-category").dialog({
+        width: 400,
+        modal: true,
+        resizable: false,
+        buttons: {
+            "Elimină": function() {
+                var dialog = $(this);
+                removeCategoryFromDestination(categoryId, function() {
+                    dialog.dialog("close");
+                });
+            },
+            "Anulează": function() {
+                $(this).dialog("close");
+            }
+        }
+    });
+}
+
+function removeCategoryFromDestination(categoryId, callback) {
+    $.ajax({
+        type: "POST",
+        url: "DestinationDetail.aspx/RemoveCategoryFromDestination",
+        data: JSON.stringify({ destinatieId: window.currentDestinationId, categorieId: categoryId }),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(response) {
+            var result;
+            try { 
+                result = JSON.parse(response.d); 
+            } catch (e) { 
+                alert('Eroare la procesarea răspunsului server');
+                return;
+            }
+            
+            if (result.success) {
+                // Reload current categories display
+                loadCurrentCategoriesForManagement();
+                alert('Categoria a fost eliminată cu succes!');
+                if (callback) callback();
+            } else {
+                alert('Eroare: ' + result.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Ajax error removing category:', error);
+            alert('Eroare la eliminarea categoriei');
+        }
+    });
 }

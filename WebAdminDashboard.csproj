@@ -140,6 +140,7 @@
     <Content Include="Content\news.css" />
     <Content Include="Content\puncte-interes.css" />
     <Content Include="Content\styles.css" />
+    <Content Include="Content\user-analytics.css" />
     <Content Include="Content\user-detail.css" />
     <Content Include="Pages\DestinationDetail.aspx" />
     <Content Include="Pages\News.ascx" />
@@ -159,6 +160,7 @@
     <Content Include="Scripts\destination-detail.js" />
     <Content Include="Scripts\facilitate.js" />
     <Content Include="Scripts\news.js" />
+    <Content Include="Scripts\user-analytics.js" />
     <Content Include="Scripts\user-detail.js" />
     <Content Include="Web.config" />
   </ItemGroup>

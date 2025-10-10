@@ -1,4 +1,4 @@
-<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="DestinationDetail.aspx.cs" Inherits="WebAdminDashboard.DestinationDetail" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="DestinationDetail.aspx.cs" Inherits="WebAdminDashboard.DestinationDetail" %>
 <%@ Register Src="~/Pages/Shared/Navbar.ascx" TagPrefix="uc" TagName="Navbar" %>
 <%@ Register Src="~/Pages/Shared/Sidebar.ascx" TagPrefix="uc" TagName="Sidebar" %>
 
@@ -9,7 +9,7 @@
     <title>Detalii Destinatie - Dashboard</title>
     <link href="/Content/styles.css?v=6" rel="stylesheet" />
     <link href="/Content/destinatie.css?v=3" rel="stylesheet" />
-    <link href="/Content/destination-detail.css?v=2" rel="stylesheet" />
+    <link href="/Content/destination-detail.css?v=3" rel="stylesheet" />
     <link href="/Content/puncte-interes.css?v=1" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
@@ -18,7 +18,7 @@
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
     <script src="/Scripts/app.js?v=4"></script>
-    <script src="/Scripts/destination-detail.js?v=5"></script>
+    <script src="/Scripts/destination-detail.js?v=6"></script>
 </head>
 <body>
     <form id="form1" runat="server">
@@ -109,6 +109,25 @@
                         <div class="card-content">
                             <div id="images-gallery" class="images-gallery">
                                 <!-- Images will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Categories Section -->
+                    <div class="detail-card categories-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-tags"></i> Categorii Vacanță</h3>
+                            <button type="button" id="btn-manage-categories" class="btn-add-small">
+                                <i class="fas fa-cogs"></i> Gestionează Categorii
+                            </button>
+                        </div>
+                        <div class="card-content">
+                            <div id="categories-container" class="categories-container">
+                                <!-- Categories will be loaded here -->
+                            </div>
+                            <div id="no-categories-message" class="no-data-message" style="display:none;">
+                                <i class="fas fa-tag"></i>
+                                <p>Nu sunt categorii asociate cu această destinație.</p>
                             </div>
                         </div>
                     </div>
@@ -224,6 +243,43 @@
                 Sigur doriti sa stergeti punctul de interes <strong><span id="delete-punct-name"></span></strong>?
             </p>
             <p><em>Aceasta actiune este ireversibila.</em></p>
+        </div>
+
+        <!-- Manage Categories Dialog -->
+        <div id="dialog-manage-categories" title="Gestionează Categorii Destinație" style="display:none;">
+            <div class="categories-management">
+                <div class="current-categories-section">
+                    <h4><i class="fas fa-tags"></i> Categorii Curente</h4>
+                    <div id="current-categories-list" class="current-categories-list">
+                        <!-- Current categories will be loaded here -->
+                    </div>
+                </div>
+                
+                <div class="add-category-section">
+                    <h4><i class="fas fa-plus-circle"></i> Adaugă Categorie Nouă</h4>
+                    <div class="category-selector">
+                        <select id="available-categories" class="form-control">
+                            <option value="">-- Selectează o categorie --</option>
+                        </select>
+                        <button type="button" id="btn-add-selected-category" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Adaugă
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="categories-info">
+                    <p><i class="fas fa-info-circle"></i> Maximum 3 categorii pot fi asociate cu o destinație.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirm Remove Category Dialog -->
+        <div id="dialog-remove-category" title="Confirmare eliminare categorie" style="display:none;">
+            <p>
+                <span class="ui-icon ui-icon-alert" style="float:left; margin:12px 12px 20px 0;"></span>
+                Sigur doriti sa eliminati categoria <strong><span id="remove-category-name"></span></strong> de la aceasta destinatie?
+            </p>
+            <p><em>Aceasta actiune poate fi anulata prin adaugarea din nou a categoriei.</em></p>
         </div>
 
     </form>

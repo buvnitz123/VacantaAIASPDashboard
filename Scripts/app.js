@@ -29,6 +29,11 @@
                 initPuncteTable();
             } else if (sectionName === 'sugestii') {
                 initSugestiiTable();
+            } else if (sectionName === 'home') {
+                // Initialize user analytics for home section
+                if (window.UserAnalytics) {
+                    window.UserAnalytics.init();
+                }
             }
         }
 

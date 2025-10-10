@@ -15,6 +15,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Net.Http;
+using System.Data.Entity;
 using AppContext = WebAdminDashboard.Classes.Database.AppContext;
 
 namespace WebAdminDashboard
@@ -960,6 +961,258 @@ namespace WebAdminDashboard
             {
                 return JsonConvert.SerializeObject(new { success = false, message = "Eroare la ștergerea utilizatorului" });
             }
+        }
+
+        // User Analytics WebMethods
+        [WebMethod]
+        public static string GetUsersForAnalytics()
+        {
+            try
+            {
+                using (var repository = new UtilizatorRepository())
+                {
+                    var users = repository.GetAll()
+                        .Where(u => u.EsteActiv == 1)
+                        .Select(u => new
+                        {
+                            Id_Utilizator = u.Id_Utilizator,
+                            Nume = u.Nume,
+                            Prenume = u.Prenume,
+                            Email = u.Email,
+                            EsteActiv = u.EsteActiv
+                        })
+                        .OrderBy(u => u.Nume)
+                        .ThenBy(u => u.Prenume)
+                        .ToList();
+
+                    return JsonConvert.SerializeObject(new { success = true, users = users });
+                }
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la încărcarea utilizatorilor" });
+            }
+        }
+
+        [WebMethod]
+        public static string GetUserPreferencesAnalytics(int userId)
+        {
+            try
+            {
+                using (var prefRepository = new PreferinteUtilizatorRepository())
+                using (var context = new AppContext())
+                {
+                    // Get user preferences with related data
+                    var preferences = context.PreferinteUtilizator
+                        .Where(p => p.Id_Utilizator == userId)
+                        .Include(p => p.CategorieVacanta)
+                        .Include(p => p.Destinatie)
+                        .Include(p => p.Utilizator)
+                        .ToList();
+
+                    if (!preferences.Any())
+                    {
+                        return JsonConvert.SerializeObject(new { success = false, message = "Nu există preferințe pentru acest utilizator" });
+                    }
+
+                    // Get activity logs
+                    var logRepository = new LogActivitateRepository();
+                    var activityLogs = logRepository.GetAll()
+                        .Where(l => l.Id_Utilizator == userId)
+                        .OrderByDescending(l => l.DataInregistrare)
+                        .ToList();
+
+                    // Get favorites
+                    var favoriteRepository = new FavoriteRepository();
+                    var favorites = favoriteRepository.GetAll()
+                        .Where(f => f.Id_Utilizator == userId)
+                        .ToList();
+
+                    // Prepare analytics data
+                    var analytics = new
+                    {
+                        // Quick Stats
+                        totalPreferences = preferences.Count,
+                        totalFavorites = favorites.Count,
+                        totalActivities = activityLogs.Count,
+                        lastActivity = activityLogs.FirstOrDefault()?.DataInregistrare?.ToString("dd/MM/yyyy HH:mm"),
+
+                        // Categories Distribution
+                        categoriesDistribution = preferences
+                            .GroupBy(p => p.CategorieVacanta?.Denumire ?? "Necunoscut")
+                            .Select(g => new { category = g.Key, count = g.Count() })
+                            .OrderByDescending(x => x.count)
+                            .ToList(),
+
+                        // Destinations Distribution
+                        destinationsDistribution = preferences
+                            .GroupBy(p => p.Destinatie?.Denumire ?? "Necunoscut")
+                            .Select(g => new { destination = g.Key, count = g.Count() })
+                            .OrderByDescending(x => x.count)
+                            .Take(10)
+                            .ToList(),
+
+                        // Countries Distribution
+                        countriesDistribution = preferences
+                            .GroupBy(p => p.Destinatie?.Tara ?? "Necunoscut")
+                            .Select(g => new { country = g.Key, count = g.Count() })
+                            .OrderByDescending(x => x.count)
+                            .ToList(),
+
+                        // Budget Analysis
+                        budgetAnalysis = new
+                        {
+                            averageMinBudget = preferences.Where(p => p.Buget_Minim.HasValue).Any() ? 
+                                preferences.Where(p => p.Buget_Minim.HasValue).Average(p => p.Buget_Minim.Value) : 0,
+                            averageMaxBudget = preferences.Where(p => p.Buget_Maxim.HasValue).Any() ? 
+                                preferences.Where(p => p.Buget_Maxim.HasValue).Average(p => p.Buget_Maxim.Value) : 0,
+                            budgetRanges = preferences
+                                .Where(p => p.Buget_Minim.HasValue && p.Buget_Maxim.HasValue)
+                                .Select(p => new 
+                                { 
+                                    min = p.Buget_Minim.Value, 
+                                    max = p.Buget_Maxim.Value,
+                                    date = p.Data_Inregistrare.ToString("MM/yyyy")
+                                })
+                                .ToList()
+                        },
+
+                        // Timeline Data
+                        timelineData = preferences
+                            .GroupBy(p => p.Data_Inregistrare.ToString("MM/yyyy"))
+                            .Select(g => new { date = g.Key, count = g.Count() })
+                            .OrderBy(x => x.date)
+                            .ToList(),
+
+                        // Activity Types Distribution
+                        activityDistribution = activityLogs
+                            .GroupBy(a => a.TipActivitate ?? "Necunoscut")
+                            .Select(g => new { activity = g.Key, count = g.Count() })
+                            .OrderByDescending(x => x.count)
+                            .ToList(),
+
+                        // Favorite Categories
+                        favoriteCategory = preferences
+                            .GroupBy(p => p.CategorieVacanta?.Denumire ?? "Necunoscut")
+                            .OrderByDescending(g => g.Count())
+                            .FirstOrDefault()?.Key ?? "Necunoscut",
+
+                        // Recent Preferences
+                        recentPreferences = preferences
+                            .OrderByDescending(p => p.Data_Inregistrare)
+                            .Take(5)
+                            .Select(p => new
+                            {
+                                categoria = p.CategorieVacanta?.Denumire,
+                                destinatie = p.Destinatie?.Denumire,
+                                buget_min = p.Buget_Minim,
+                                buget_max = p.Buget_Maxim,
+                                data = p.Data_Inregistrare.ToString("dd/MM/yyyy")
+                            })
+                            .ToList()
+                    };
+
+                    return JsonConvert.SerializeObject(new { success = true, data = analytics });
+                }
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la încărcarea datelor de analiză", error = ex.Message });
+            }
+        }
+
+        [WebMethod]
+        public static string GenerateUserInsights(int userId)
+        {
+            try
+            {
+                using (var context = new AppContext())
+                {
+                    var preferences = context.PreferinteUtilizator
+                        .Where(p => p.Id_Utilizator == userId)
+                        .Include(p => p.CategorieVacanta)
+                        .Include(p => p.Destinatie)
+                        .ToList();
+
+                    if (!preferences.Any())
+                    {
+                        return JsonConvert.SerializeObject(new { success = false, message = "Nu există date pentru generarea insights-urilor" });
+                    }
+
+                    // Generate insights
+                    var insights = new
+                    {
+                        budgetInsight = GenerateBudgetInsight(preferences),
+                        destinationInsight = GenerateDestinationInsight(preferences),
+                        categoryInsight = GenerateCategoryInsight(preferences)
+                    };
+
+                    return JsonConvert.SerializeObject(new { success = true, insights = insights });
+                }
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la generarea insights-urilor" });
+            }
+        }
+
+        private static string GenerateBudgetInsight(List<PreferinteUtilizator> preferences)
+        {
+            var budgets = preferences.Where(p => p.Buget_Minim.HasValue && p.Buget_Maxim.HasValue).ToList();
+            if (!budgets.Any()) return "Nu există date suficiente despre buget.";
+
+            var avgMin = budgets.Average(p => p.Buget_Minim.Value);
+            var avgMax = budgets.Average(p => p.Buget_Maxim.Value);
+            var avgRange = avgMax - avgMin;
+
+            string budgetLevel = avgMax < 500 ? "economic" : avgMax < 1500 ? "mediu" : "premium";
+            
+            return $"Utilizatorul preferă vacanțe cu buget {budgetLevel} (în medie {avgMin:F0}-{avgMax:F0} RON). " +
+                   $"Flexibilitatea bugetului este {(avgRange > 500 ? "mare" : "mică")} ({avgRange:F0} RON diferență).";
+        }
+
+        private static string GenerateDestinationInsight(List<PreferinteUtilizator> preferences)
+        {
+            var destinations = preferences.Where(p => p.Destinatie != null).ToList();
+            if (!destinations.Any()) return "Nu există date despre destinații.";
+
+            var topDestination = destinations
+                .GroupBy(p => p.Destinatie.Denumire)
+                .OrderByDescending(g => g.Count())
+                .FirstOrDefault();
+
+            var countries = destinations
+                .GroupBy(p => p.Destinatie.Tara)
+                .Count();
+
+            var domesticCount = destinations.Count(p => p.Destinatie.Tara.ToLower().Contains("romania"));
+            var internationalCount = destinations.Count - domesticCount;
+
+            string preference = domesticCount > internationalCount ? "destinații interne" : "destinații internaționale";
+            
+            return $"Utilizatorul preferă {preference}. Destinația favorită este {topDestination?.Key} " +
+                   $"({topDestination?.Count()} preferințe). Explorează destinații din {countries} țări diferite.";
+        }
+
+        private static string GenerateCategoryInsight(List<PreferinteUtilizator> preferences)
+        {
+            var categories = preferences.Where(p => p.CategorieVacanta != null).ToList();
+            if (!categories.Any()) return "Nu există date despre categorii.";
+
+            var topCategory = categories
+                .GroupBy(p => p.CategorieVacanta.Denumire)
+                .OrderByDescending(g => g.Count())
+                .FirstOrDefault();
+
+            var diversity = categories
+                .GroupBy(p => p.CategorieVacanta.Denumire)
+                .Count();
+
+            string diversityLevel = diversity == 1 ? "foarte focalizate" : diversity <= 3 ? "focalizate" : "diverse";
+            
+            return $"Preferințele sunt {diversityLevel} cu accent pe {topCategory?.Key} " +
+                   $"({topCategory?.Count()} din {categories.Count} preferințe). " +
+                   $"Explorează {diversity} tipuri diferite de vacanțe.";
         }
     }
 }

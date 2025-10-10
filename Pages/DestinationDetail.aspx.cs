@@ -1,10 +1,12 @@
-using System;
+﻿using System;
 using System.Web.UI;
 using WebAdminDashboard.Classes.Database.Repositories;
 using WebAdminDashboard.Classes.DTO;
 using Newtonsoft.Json;
 using System.Web.Services;
 using System.Linq;
+using System.Data.Entity;
+using System.Collections.Generic;
 
 namespace WebAdminDashboard
 {
@@ -389,6 +391,203 @@ namespace WebAdminDashboard
             {
                 System.Diagnostics.Debug.WriteLine($"DeletePunctDeInteres error: {ex.Message}");
                 return JsonConvert.SerializeObject(new { success = false, message = "Eroare la ștergerea punctului de interes: " + ex.Message });
+            }
+        }
+
+        [WebMethod]
+        public static string GetCategoriiByDestinatie(int destinatieId)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"GetCategoriiByDestinatie called with destinatieId: {destinatieId}");
+                
+                using (var context = new Classes.Database.AppContext())
+                {
+                    // First check if the destination exists
+                    var destinatie = context.Destinatii.Find(destinatieId);
+                    if (destinatie == null)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Destination {destinatieId} not found");
+                        return JsonConvert.SerializeObject(new { success = false, message = "Destinația nu a fost găsită" });
+                    }
+                    
+                    // Query the many-to-many relationship to get categories for this destination
+                    var categorii = context.CategorieVacanta_Destinatie
+                        .Where(cvd => cvd.Id_Destinatie == destinatieId)
+                        .Include(cvd => cvd.CategorieVacanta)
+                        .Select(cvd => cvd.CategorieVacanta)
+                        .Where(cv => cv != null) // Ensure category exists
+                        .Take(3) // Limit to maximum 3 categories as requested
+                        .ToList();
+
+                    System.Diagnostics.Debug.WriteLine($"Found {categorii.Count} categories for destination {destinatieId}");
+                    
+                    foreach (var cat in categorii)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Category: {cat?.Denumire}, ID: {cat?.Id_CategorieVacanta}, Image: {cat?.ImagineUrl}");
+                    }
+
+                    var result = categorii.Select(c => new
+                    {
+                        Id_CategorieVacanta = c.Id_CategorieVacanta,
+                        Denumire = c.Denumire ?? "Categorie fără nume",
+                        ImagineUrl = !string.IsNullOrEmpty(c.ImagineUrl) && !c.ImagineUrl.StartsWith("http") 
+                            ? "https://vacantaai.blob.core.windows.net/vacantaai/" + c.ImagineUrl 
+                            : c.ImagineUrl
+                    }).ToList();
+
+                    System.Diagnostics.Debug.WriteLine($"Returning {result.Count} categories with proper format");
+                    var jsonResult = JsonConvert.SerializeObject(new { success = true, categories = result });
+                    System.Diagnostics.Debug.WriteLine($"JSON result: {jsonResult}");
+                    
+                    return jsonResult;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetCategoriiByDestinatie error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                return JsonConvert.SerializeObject(new { 
+                    success = false, 
+                    message = "Eroare la încărcarea categoriilor destinației: " + ex.Message 
+                });
+            }
+        }
+
+        [WebMethod]
+        public static string GetAllAvailableCategories()
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine("GetAllAvailableCategories called");
+                
+                using (var repository = new CategorieVacantaRepository())
+                {
+                    var categorii = repository.GetAll()
+                        .OrderBy(c => c.Denumire)
+                        .ToList();
+
+                    var result = categorii.Select(c => new
+                    {
+                        Id_CategorieVacanta = c.Id_CategorieVacanta,
+                        Denumire = c.Denumire,
+                        ImagineUrl = !string.IsNullOrEmpty(c.ImagineUrl) && !c.ImagineUrl.StartsWith("http") 
+                            ? "https://vacantaai.blob.core.windows.net/vacantaai/" + c.ImagineUrl 
+                            : c.ImagineUrl
+                    }).ToList();
+
+                    System.Diagnostics.Debug.WriteLine($"Found {result.Count} total categories");
+                    return JsonConvert.SerializeObject(new { success = true, categories = result });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"GetAllAvailableCategories error: {ex.Message}");
+                return JsonConvert.SerializeObject(new { 
+                    success = false, 
+                    message = "Eroare la încărcarea categoriilor disponibile: " + ex.Message 
+                });
+            }
+        }
+
+        [WebMethod]
+        public static string AddCategoryToDestination(int destinatieId, int categorieId)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"AddCategoryToDestination called: destinatieId={destinatieId}, categorieId={categorieId}");
+                
+                using (var context = new Classes.Database.AppContext())
+                {
+                    // Check if destination exists
+                    var destinatie = context.Destinatii.Find(destinatieId);
+                    if (destinatie == null)
+                    {
+                        return JsonConvert.SerializeObject(new { success = false, message = "Destinația nu a fost găsită" });
+                    }
+
+                    // Check if category exists
+                    var categorie = context.CategoriiVacanta.Find(categorieId);
+                    if (categorie == null)
+                    {
+                        return JsonConvert.SerializeObject(new { success = false, message = "Categoria nu a fost găsită" });
+                    }
+
+                    // Check if relationship already exists
+                    var existingRelation = context.CategorieVacanta_Destinatie
+                        .FirstOrDefault(cvd => cvd.Id_Destinatie == destinatieId && cvd.Id_CategorieVacanta == categorieId);
+                    
+                    if (existingRelation != null)
+                    {
+                        return JsonConvert.SerializeObject(new { success = false, message = "Categoria este deja asociată cu această destinație" });
+                    }
+
+                    // Check limit of 3 categories per destination
+                    var currentCategoriesCount = context.CategorieVacanta_Destinatie
+                        .Count(cvd => cvd.Id_Destinatie == destinatieId);
+                    
+                    if (currentCategoriesCount >= 3)
+                    {
+                        return JsonConvert.SerializeObject(new { success = false, message = "O destinație poate avea maximum 3 categorii asociate" });
+                    }
+
+                    // Create new relationship
+                    var newRelation = new CategorieVacanta_Destinatie
+                    {
+                        Id_Destinatie = destinatieId,
+                        Id_CategorieVacanta = categorieId
+                    };
+
+                    context.CategorieVacanta_Destinatie.Add(newRelation);
+                    context.SaveChanges();
+
+                    System.Diagnostics.Debug.WriteLine($"Successfully added category {categorieId} to destination {destinatieId}");
+                    return JsonConvert.SerializeObject(new { success = true, message = "Categoria a fost adăugată cu succes" });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"AddCategoryToDestination error: {ex.Message}");
+                return JsonConvert.SerializeObject(new { 
+                    success = false, 
+                    message = "Eroare la adăugarea categoriei: " + ex.Message 
+                });
+            }
+        }
+
+        [WebMethod]
+        public static string RemoveCategoryFromDestination(int destinatieId, int categorieId)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"RemoveCategoryFromDestination called: destinatieId={destinatieId}, categorieId={categorieId}");
+                
+                using (var context = new Classes.Database.AppContext())
+                {
+                    // Find the relationship
+                    var relation = context.CategorieVacanta_Destinatie
+                        .FirstOrDefault(cvd => cvd.Id_Destinatie == destinatieId && cvd.Id_CategorieVacanta == categorieId);
+                    
+                    if (relation == null)
+                    {
+                        return JsonConvert.SerializeObject(new { success = false, message = "Relația nu a fost găsită" });
+                    }
+
+                    // Remove the relationship
+                    context.CategorieVacanta_Destinatie.Remove(relation);
+                    context.SaveChanges();
+
+                    System.Diagnostics.Debug.WriteLine($"Successfully removed category {categorieId} from destination {destinatieId}");
+                    return JsonConvert.SerializeObject(new { success = true, message = "Categoria a fost eliminată cu succes" });
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"RemoveCategoryFromDestination error: {ex.Message}");
+                return JsonConvert.SerializeObject(new { 
+                    success = false, 
+                    message = "Eroare la eliminarea categoriei: " + ex.Message 
+                });
             }
         }
     }
