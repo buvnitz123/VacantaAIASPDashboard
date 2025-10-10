@@ -10,11 +10,9 @@
                 <th>Generată de AI</th>
                 <th>Titlu</th>
                 <th>Buget Estimat</th>
-                <th>Descriere</th>
                 <th>Public</th>
-                <th>Cod Partajare</th>
-                <th>Id Destinație</th>
-                <th>Id Utilizator</th>
+                <th>Destinație</th>
+                <th>Utilizator</th>
             </tr>
         </thead>
         <tbody></tbody>

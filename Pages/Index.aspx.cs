@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -240,10 +240,47 @@ namespace WebAdminDashboard
         [WebMethod]
         public static string GetSugestiiData()
         {
-            using (var repository = new SugestieRepository())
+            try
             {
-                var data = repository.GetAll();
-                return JsonConvert.SerializeObject(data);
+                using (var repository = new SugestieRepository())
+                {
+                    var data = repository.GetAll();
+                    
+                    // Map to include destination and user data
+                    var result = data.Select(s => new
+                    {
+                        Id_Sugestie = s.Id_Sugestie,
+                        Data_Inregistrare = s.Data_Inregistrare,
+                        EsteGenerataDeAI = s.EsteGenerataDeAI,
+                        Titlu = s.Titlu,
+                        Buget_Estimat = s.Buget_Estimat,
+                        Descriere = s.Descriere,
+                        EstePublic = s.EstePublic,
+                        CodPartajare = s.CodPartajare,
+                        Id_Destinatie = s.Id_Destinatie,
+                        Id_Utilizator = s.Id_Utilizator,
+                        Destinatie = s.Destinatie != null ? new
+                        {
+                            Id_Destinatie = s.Destinatie.Id_Destinatie,
+                            Denumire = s.Destinatie.Denumire,
+                            Tara = s.Destinatie.Tara,
+                            Oras = s.Destinatie.Oras
+                        } : null,
+                        Utilizator = s.Utilizator != null ? new
+                        {
+                            Id_Utilizator = s.Utilizator.Id_Utilizator,
+                            Nume = s.Utilizator.Nume,
+                            Prenume = s.Utilizator.Prenume,
+                            Email = s.Utilizator.Email
+                        } : null
+                    }).ToList();
+                    
+                    return JsonConvert.SerializeObject(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la încărcarea sugestiilor" });
             }
         }
 

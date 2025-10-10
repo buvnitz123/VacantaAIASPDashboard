@@ -1,4 +1,4 @@
-<%@ Control Language="C#" %>
+﻿<%@ Control Language="C#" %>
 <div>
     <h2>Utilizatori</h2>
     <p>Gestionare utilizatori: listare, adaugare, editare si stergere.</p>
@@ -9,7 +9,6 @@
                 <th>Nume</th>
                 <th>Prenume</th>
                 <th>Email</th>
-                <th>Telefon</th>
                 <th>Activ</th>
                 <th>Actiuni</th>
             </tr>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Web.Services;
 using System.Web.UI;
@@ -41,7 +41,6 @@ namespace WebAdminDashboard
                         user.Nume,
                         user.Prenume,
                         user.Email,
-                        user.Telefon,
                         Data_Nastere = user.Data_Nastere.ToString("dd/MM/yyyy"),
                         EsteActiv = user.EsteActiv == 1,
                         PozaProfil = pozaProfil
@@ -52,7 +51,7 @@ namespace WebAdminDashboard
             }
             catch (Exception ex)
             {
-                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la �nc?rcarea utilizatorului" });
+                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la înc?rcarea utilizatorului" });
             }
         }
     }

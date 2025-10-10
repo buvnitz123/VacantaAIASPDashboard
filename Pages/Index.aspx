@@ -1,4 +1,4 @@
-<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Index.aspx.cs" Inherits="WebAdminDashboard.Index" Async="true" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Index.aspx.cs" Inherits="WebAdminDashboard.Index" Async="true" %>
 <%@ Register Src="~/Pages/Shared/Navbar.ascx" TagPrefix="uc" TagName="Navbar" %>
 <%@ Register Src="~/Pages/Shared/Sidebar.ascx" TagPrefix="uc" TagName="Sidebar" %>
 <%@ Register Src="~/Pages/Utilizatori.ascx" TagPrefix="pg" TagName="Utilizatori" %>
@@ -17,7 +17,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard</title>
-    <link href="/Content/styles.css?v=6" rel="stylesheet" />
+    <link href="/Content/styles.css?v=7" rel="stylesheet" />
     <link href="/Content/news.css?v=2" rel="stylesheet" />
     <link href="/Content/categorie-vacanta.css?v=2" rel="stylesheet" />
     <link href="/Content/facilitate.css?v=14" rel="stylesheet" />
@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css"/>
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <script src="/Scripts/app.js?v=4"></script>
+    <script src="/Scripts/app.js?v=8"></script>
     <script src="/Scripts/news.js?v=5"></script>
     <script src="/Scripts/categorie-vacanta.js?v=2"></script>
     <script src="/Scripts/facilitate.js?v=15"></script>

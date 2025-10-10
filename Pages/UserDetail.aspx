@@ -58,10 +58,6 @@
                                     <span id="detail-email"></span>
                                 </div>
                                 <div class="info-row">
-                                    <label>Telefon:</label>
-                                    <span id="detail-telefon"></span>
-                                </div>
-                                <div class="info-row">
                                     <label>Data naștere:</label>
                                     <span id="detail-nastere"></span>
                                 </div>

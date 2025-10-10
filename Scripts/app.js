@@ -1,4 +1,4 @@
-// Sidebar toggle logic
+﻿// Sidebar toggle logic
 (function () {
     var allowedSections = ['home', 'news', 'utilizatori', 'categorii', 'destinatii', 'facilitati', 'puncte', 'sugestii'];
 
@@ -109,54 +109,82 @@
 
     var utilizatoriInited = false;
     function initUtilizatoriTable() {
-        if (utilizatoriInited || typeof $ === 'undefined' || !$('#tblUtilizatori').length) return;
-        
-        // Check if DataTable is already initialized
-        if ($.fn.DataTable.isDataTable('#tblUtilizatori')) {
-            return; // Don't reinitialize if already exists
+        // Allow reinit if table doesn't exist as DataTable
+        if (typeof $ === 'undefined' || !$('#tblUtilizatori').length) {
+            return;
         }
         
-        $('#tblUtilizatori').DataTable({
-            ajax: {
-                url: 'Index.aspx/GetUtilizatoriData',
-                type: 'POST',
-                contentType: 'application/json; charset=utf-8',
-                dataType: 'json',
-                dataSrc: function (json) {
-                    var data = [];
-                    try { 
-                        data = JSON.parse(json.d); 
-                    } catch (e) { 
-                        console.error('Error parsing utilizatori data:', e);
+        // Check if DataTable is already initialized and destroy it
+        if ($.fn.DataTable.isDataTable('#tblUtilizatori')) {
+            $('#tblUtilizatori').DataTable().destroy();
+        }
+        
+        try {
+            $('#tblUtilizatori').DataTable({
+                ajax: {
+                    url: 'Index.aspx/GetUtilizatoriData',
+                    type: 'POST',
+                    contentType: 'application/json; charset=utf-8',
+                    dataType: 'json',
+                    dataSrc: function (json) {
+                        var data = [];
+                        try { 
+                            data = JSON.parse(json.d);
+                        } catch (e) { 
+                            console.error('Error parsing utilizatori data:', e);
+                        }
+                        // Optional: mascare parola la sursă dacă tot apare
+                        data.forEach(function(u){ if (u.Parola) u.Parola = '***'; });
+                        return data;
+                    },
+                    error: function(xhr, error, thrown) {
+                        console.error('AJAX Error loading users:', error);
                     }
-                    // Optional: mascare parola la sursă dacă tot apare
-                    data.forEach(function(u){ if (u.Parola) u.Parola = '***'; });
-                    return data;
-                }
-            },
-            columns: [
-                { data: 'Id_Utilizator' },
-                { data: 'Nume' },
-                { data: 'Prenume' },
-                { data: 'Email' },
-                { data: 'Telefon' },
-                { 
-                    data: 'EsteActiv',
-                    render: function(val){ return val === 1 ? 'Da' : 'Nu'; }
                 },
-                {
-                    data: null,
-                    orderable: false,
-                    searchable: false,
-                    render: function(row){
-                        return "<div class='action-buttons'>" +
-                               "<button class='btn-action view-user' title='Detalii' data-id='" + row.Id_Utilizator + "'><i class='fas fa-eye'></i></button>" +
-                               "<button class='btn-action delete-user' title='Sterge' data-id='" + row.Id_Utilizator + "' data-name='" + row.Nume + " " + row.Prenume + "'><i class='fas fa-trash'></i></button>" +
-                               "</div>";
+                columns: [
+                    { data: 'Id_Utilizator' },
+                    { data: 'Nume' },
+                    { data: 'Prenume' },
+                    { data: 'Email' },
+                    { 
+                        data: 'EsteActiv',
+                        render: function(val){ return val === 1 ? 'Da' : 'Nu'; }
+                    },
+                    {
+                        data: null,
+                        orderable: false,
+                        searchable: false,
+                        render: function(row){
+                            return "<div class='action-buttons'>" +
+                                   "<button class='btn-action view-user' title='Detalii' data-id='" + row.Id_Utilizator + "'><i class='fas fa-eye'></i></button>" +
+                                   "<button class='btn-action delete-user' title='Sterge' data-id='" + row.Id_Utilizator + "' data-name='" + row.Nume + " " + row.Prenume + "'><i class='fas fa-trash'></i></button>" +
+                                   "</div>";
+                        }
+                    }
+                ],
+                language: {
+                    emptyTable: "Nu există utilizatori în baza de date",
+                    loadingRecords: "Se încarcă...",
+                    processing: "Se procesează...",
+                    info: "Afișare _START_ la _END_ din _TOTAL_ înregistrări",
+                    infoEmpty: "Afișare 0 la 0 din 0 înregistrări",
+                    infoFiltered: "(filtrat din _MAX_ înregistrări totale)",
+                    lengthMenu: "Afișare _MENU_ înregistrări",
+                    search: "Căutare:",
+                    zeroRecords: "Nu s-au găsit înregistrări",
+                    paginate: {
+                        first: "Primul",
+                        last: "Ultimul",
+                        next: "Următorul",
+                        previous: "Precedentul"
                     }
                 }
-            ]
-        });
+            });
+            
+            utilizatoriInited = true;
+        } catch (e) {
+            console.error('Error initializing DataTable:', e);
+        }
 
         // Navigare către pagina de detalii
         $('#tblUtilizatori tbody')
@@ -656,17 +684,87 @@
                 }
             },
             columns: [
-                { data: 'Id_Sugestie' },
-                { data: 'Data_Inregistrare' },
-                { data: 'EsteGenerataDeAI' },
-                { data: 'Titlu' },
-                { data: 'Buget_Estimat' },
-                { data: 'Descriere' },
-                { data: 'EstePublic' },
-                { data: 'CodPartajare' },
-                { data: 'Id_Destinatie' },
-                { data: 'Id_Utilizator' }
-            ]
+                { data: 'Id_Sugestie', className: 'dt-left' },
+                { 
+                    data: 'Data_Inregistrare',
+                    className: 'dt-left',
+                    render: function(data, type) {
+                        if (type === 'display' && data) {
+                            try {
+                                var date = new Date(data);
+                                var day = ('0' + date.getDate()).slice(-2);
+                                var month = ('0' + (date.getMonth() + 1)).slice(-2);
+                                var year = date.getFullYear();
+                                return day + '/' + month + '/' + year;
+                            } catch (e) {
+                                return data;
+                            }
+                        }
+                        return data;
+                    }
+                },
+                { 
+                    data: 'EsteGenerataDeAI',
+                    className: 'dt-left',
+                    render: function(val) { 
+                        return val === 1 || val === true ? 'Da' : 'Nu'; 
+                    }
+                },
+                { data: 'Titlu', className: 'dt-left' },
+                { 
+                    data: 'Buget_Estimat',
+                    className: 'dt-left',
+                    render: function(data) {
+                        return data ? data.toFixed(2) + ' RON' : '0.00 RON';
+                    }
+                },
+                { 
+                    data: 'EstePublic',
+                    className: 'dt-left',
+                    render: function(val) { 
+                        return val === 1 || val === true ? 'Da' : 'Nu'; 
+                    }
+                },
+                { 
+                    data: 'Destinatie',
+                    className: 'dt-left',
+                    render: function(data, type, row) {
+                        if (data && data.Denumire) {
+                            return "<a href='DestinationDetail.aspx?id=" + row.Id_Destinatie + "' class='destination-link' title='Vezi detalii destinatie'>" + 
+                                   data.Denumire + " <i class='fas fa-external-link-alt'></i></a>";
+                        }
+                        return 'Destinatie necunoscuta';
+                    }
+                },
+                { 
+                    data: 'Utilizator',
+                    className: 'dt-left',
+                    render: function(data, type, row) {
+                        if (data && data.Nume && data.Prenume) {
+                            return "<a href='UserDetail.aspx?id=" + row.Id_Utilizator + "' class='user-link' title='Vezi detalii utilizator'>" + 
+                                   data.Nume + " " + data.Prenume + " <i class='fas fa-external-link-alt'></i></a>";
+                        }
+                        return 'Utilizator necunoscut';
+                    }
+                }
+            ],
+            language: {
+                emptyTable: "Nu există sugestii în baza de date",
+                loadingRecords: "Se încarcă...",
+                processing: "Se procesează...",
+                info: "Afișare _START_ la _END_ din _TOTAL_ înregistrări",
+                infoEmpty: "Afișare 0 la 0 din 0 înregistrări",
+                infoFiltered: "(filtrat din _MAX_ înregistrări totale)",
+                lengthMenu: "Afișare _MENU_ înregistrări",
+                search: "Căutare:",
+                zeroRecords: "Nu s-au găsit înregistrări",
+                paginate: {
+                    first: "Primul",
+                    last: "Ultimul",
+                    next: "Următorul",
+                    previous: "Precedentul"
+                }
+            }
         });
         sugestiiInited = true;
     }
@@ -674,8 +772,6 @@
     var newsInited = false;
     function initNewsSection() {
         if (newsInited) return;
-        
-        console.log('Initializing News Section...');
         
         // Trigger custom event for news page initialization
         $(document).trigger('newsPageActive');

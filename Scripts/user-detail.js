@@ -1,4 +1,4 @@
-$(function(){
+﻿$(function(){
     var p = new URLSearchParams(window.location.search);
     var id = p.get('id');
 
@@ -58,7 +58,7 @@ function loadUserDetails(id) {
         var r;
         try { r = JSON.parse(resp.d); } catch { r = {}; }
         if (!r.success || !r.user) {
-            showError(r.message || 'Nu s-au putut �nc?rca detaliile.');
+            showError(r.message || 'Nu s-au putut înc?rca detaliile.');
             return;
         }
         populateUser(r.user);
@@ -73,7 +73,6 @@ function populateUser(u) {
     $('#detail-nume').text(u.Nume || '-');
     $('#detail-prenume').text(u.Prenume || '-');
     $('#detail-email').text(u.Email || '-');
-    $('#detail-telefon').text(u.Telefon || '-');
     $('#detail-nastere').text(u.Data_Nastere || '-');
     
     // Enhanced status display with styling
