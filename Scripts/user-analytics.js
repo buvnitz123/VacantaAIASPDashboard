@@ -125,7 +125,7 @@
         // Load analytics data
         $.ajax({
             type: "POST",
-            url: "Index.aspx/GetUserPreferencesAnalytics",
+            url: "Index.aspx/GetUserAnalyticsData",
             data: JSON.stringify({ userId: userId }),
             contentType: "application/json; charset=utf-8",
             dataType: "json",
@@ -135,7 +135,7 @@
                     if (result.success) {
                         displayUserInfo(userId);
                         displayAnalytics(result.data);
-                        loadInsights(userId);
+                        loadUserInsights(userId);
                     } else {
                         showNoDataMessage();
                         console.warn('No analytics data:', result.message);
@@ -185,25 +185,37 @@
         // Create new charts
         createCategoriesChart(data.categoriesDistribution);
         createDestinationsChart(data.destinationsDistribution);
-        createBudgetChart(data.budgetAnalysis);
-        createTimelineChart(data.timelineData);
-        createCountriesChart(data.countriesDistribution);
         createActivityChart(data.activityDistribution);
-        createBudgetRangeChart(data.budgetAnalysis.budgetRanges);
         
         // Show analytics dashboard
         $('.analytics-dashboard').fadeIn();
     }
 
     function updateQuickStats(data) {
-        $('#totalPreferences').text(data.totalPreferences || 0);
-        $('#favoriteCategory').text(data.favoriteCategory || '-');
-        
-        const avgBudget = data.budgetAnalysis ? 
-            ((data.budgetAnalysis.averageMinBudget + data.budgetAnalysis.averageMaxBudget) / 2) : 0;
-        $('#averageBudget').text(avgBudget > 0 ? `${Math.round(avgBudget)} RON` : '0 RON');
-        
+        $('#totalFavorites').text(data.totalFavorites || 0);
+        $('#totalActivities').text(data.totalActivities || 0);
         $('#lastActivity').text(data.lastActivity || '-');
+    }
+
+    function loadUserInsights(userId) {
+        $.ajax({
+            type: "POST",
+            url: "Index.aspx/GenerateUserInsights",
+            data: JSON.stringify({ userId: userId }),
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(response) {
+                try {
+                    const result = JSON.parse(response.d);
+                    if (result.success && result.insights) {
+                        $('#destinationInsightText').text(result.insights.destinationInsight);
+                        $('#categoryInsightText').text(result.insights.categoryInsight);
+                    }
+                } catch (e) {
+                    console.error('Error parsing insights:', e);
+                }
+            }
+        });
     }
 
     function createCategoriesChart(data) {
@@ -236,7 +248,7 @@
                             label: function(context) {
                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                 const percentage = ((context.raw / total) * 100).toFixed(1);
-                                return `${context.label}: ${context.raw} (${percentage}%)`;
+                                return `${context.label}: Score ${context.raw} (${percentage}%)`;
                             }
                         }
                     }
@@ -257,7 +269,7 @@
             data: {
                 labels: data.map(item => item.destination),
                 datasets: [{
-                    label: 'Preferințe',
+                    label: 'Scor Relevanță',
                     data: data.map(item => item.count),
                     backgroundColor: colorPalettes.gradient[0],
                     borderColor: colorPalettes.primary[0],
@@ -271,8 +283,9 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
+                        title: {
+                            display: true,
+                            text: 'Scor Total'
                         }
                     },
                     x: {
@@ -284,140 +297,6 @@
                 plugins: {
                     legend: {
                         display: false
-                    }
-                }
-            }
-        });
-    }
-
-    function createBudgetChart(budgetData) {
-        if (!budgetData || (!budgetData.averageMinBudget && !budgetData.averageMaxBudget)) {
-            showEmptyChart('budgetChart', 'Nu există date despre buget');
-            return;
-        }
-
-        const ctx = document.getElementById('budgetChart').getContext('2d');
-        charts.budget = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Buget Minim Mediu', 'Buget Maxim Mediu'],
-                datasets: [{
-                    label: 'RON',
-                    data: [
-                        Math.round(budgetData.averageMinBudget || 0),
-                        Math.round(budgetData.averageMaxBudget || 0)
-                    ],
-                    backgroundColor: [colorPalettes.gradient[2], colorPalettes.gradient[3]],
-                    borderColor: [colorPalettes.primary[2], colorPalettes.primary[3]],
-                    borderWidth: 1,
-                    borderRadius: 4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value + ' RON';
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.label}: ${context.raw} RON`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    function createTimelineChart(data) {
-        if (!data || data.length === 0) {
-            showEmptyChart('timelineChart', 'Nu există date timeline');
-            return;
-        }
-
-        const ctx = document.getElementById('timelineChart').getContext('2d');
-        charts.timeline = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.map(item => item.date),
-                datasets: [{
-                    label: 'Preferințe noi',
-                    data: data.map(item => item.count),
-                    borderColor: colorPalettes.primary[1],
-                    backgroundColor: colorPalettes.gradient[1],
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: colorPalettes.primary[1],
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
-            }
-        });
-    }
-
-    function createCountriesChart(data) {
-        if (!data || data.length === 0) {
-            showEmptyChart('countriesChart', 'Nu există date despre țări');
-            return;
-        }
-
-        const ctx = document.getElementById('countriesChart').getContext('2d');
-        charts.countries = new Chart(ctx, {
-            type: 'polarArea',
-            data: {
-                labels: data.map(item => item.country),
-                datasets: [{
-                    data: data.map(item => item.count),
-                    backgroundColor: colorPalettes.gradient,
-                    borderColor: colorPalettes.primary,
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'right'
-                    }
-                },
-                scales: {
-                    r: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
                     }
                 }
             }
@@ -463,89 +342,7 @@
         });
     }
 
-    function createBudgetRangeChart(data) {
-        if (!data || data.length === 0) {
-            showEmptyChart('budgetRangeChart', 'Nu există date despre evolutia bugetului');
-            return;
-        }
-
-        const ctx = document.getElementById('budgetRangeChart').getContext('2d');
-        charts.budgetRange = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: data.map(item => item.date),
-                datasets: [
-                    {
-                        label: 'Buget Minim',
-                        data: data.map(item => item.min),
-                        borderColor: colorPalettes.primary[2],
-                        backgroundColor: colorPalettes.gradient[2],
-                        tension: 0.4,
-                        fill: false
-                    },
-                    {
-                        label: 'Buget Maxim',
-                        data: data.map(item => item.max),
-                        borderColor: colorPalettes.primary[3],
-                        backgroundColor: colorPalettes.gradient[3],
-                        tension: 0.4,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value + ' RON';
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.dataset.label}: ${context.raw} RON`;
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    function loadInsights(userId) {
-        $.ajax({
-            type: "POST",
-            url: "Index.aspx/GenerateUserInsights",
-            data: JSON.stringify({ userId: userId }),
-            contentType: "application/json; charset=utf-8",
-            dataType: "json",
-            success: function(response) {
-                try {
-                    const result = JSON.parse(response.d);
-                    if (result.success) {
-                        displayInsights(result.insights);
-                    }
-                } catch (e) {
-                    console.error('Error parsing insights response:', e);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('AJAX error loading insights:', error);
-            }
-        });
-    }
-
     function displayInsights(insights) {
-        if (insights.budgetInsight) {
-            $('#budgetInsightText').text(insights.budgetInsight);
-        }
         if (insights.destinationInsight) {
             $('#destinationInsightText').text(insights.destinationInsight);
         }

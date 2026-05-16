@@ -37,7 +37,7 @@
     <script src="/Scripts/facilitate.js?v=15"></script>
     <script src="/Scripts/destinatie.js?v=4"></script>
     <script src="/Scripts/user-detail.js"></script>
-    <script src="/Scripts/user-analytics.js?v=1"></script>
+    <script src="/Scripts/user-analytics.js?v=2"></script>
 </head>
 <body>
 
@@ -103,26 +103,17 @@
                             <i class="fas fa-heart"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-number" id="totalPreferences">0</div>
-                            <div class="stat-label">Total Preferințe</div>
+                            <div class="stat-number" id="totalFavorites">0</div>
+                            <div class="stat-label">Total Favorite</div>
                         </div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <i class="fas fa-star"></i>
+                            <i class="fas fa-chart-line"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-number" id="favoriteCategory">-</div>
-                            <div class="stat-label">Categoria Preferată</div>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-euro-sign"></i>
-                        </div>
-                        <div class="stat-content">
-                            <div class="stat-number" id="averageBudget">0 €</div>
-                            <div class="stat-label">Buget Mediu</div>
+                            <div class="stat-number" id="totalActivities">0</div>
+                            <div class="stat-label">Total Activități</div>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -140,13 +131,13 @@
             <!-- Charts Section -->
             <div class="charts-section">
                 <h3><i class="fas fa-chart-bar"></i> Analize Detaliate</h3>
-                
+
                 <!-- First Row of Charts -->
                 <div class="charts-row">
                     <div class="chart-container">
                         <div class="chart-header">
-                            <h4><i class="fas fa-chart-pie"></i> Distribuția Categoriilor de Vacanță</h4>
-                            <p>Preferințele pe categorii de vacanță</p>
+                            <h4><i class="fas fa-chart-pie"></i> Categorii de Vacanță</h4>
+                            <p>Distribuția interesului pe categorii</p>
                         </div>
                         <div class="chart-wrapper">
                             <canvas id="categoriesChart"></canvas>
@@ -154,8 +145,8 @@
                     </div>
                     <div class="chart-container">
                         <div class="chart-header">
-                            <h4><i class="fas fa-chart-bar"></i> Top Destinații Preferate</h4>
-                            <p>Cele mai populare destinații</p>
+                            <h4><i class="fas fa-chart-bar"></i> Destinații Preferate</h4>
+                            <p>Scorul de interes per destinație</p>
                         </div>
                         <div class="chart-wrapper">
                             <canvas id="destinationsChart"></canvas>
@@ -167,38 +158,7 @@
                 <div class="charts-row">
                     <div class="chart-container">
                         <div class="chart-header">
-                            <h4><i class="fas fa-euro-sign"></i> Analiza Bugetului</h4>
-                            <p>Distribuția bugetelor preferate</p>
-                        </div>
-                        <div class="chart-wrapper">
-                            <canvas id="budgetChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <div class="chart-header">
-                            <h4><i class="fas fa-calendar-alt"></i> Timeline Preferințe</h4>
-                            <p>Evoluția preferințelor în timp</p>
-                        </div>
-                        <div class="chart-wrapper">
-                            <canvas id="timelineChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Third Row of Charts -->
-                <div class="charts-row">
-                    <div class="chart-container">
-                        <div class="chart-header">
-                            <h4><i class="fas fa-globe"></i> Preferințe pe Țări</h4>
-                            <p>Distribuția geografică a preferințelor</p>
-                        </div>
-                        <div class="chart-wrapper">
-                            <canvas id="countriesChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-container">
-                        <div class="chart-header">
-                            <h4><i class="fas fa-activity"></i> Activitatea Utilizatorului</h4>
+                            <h4><i class="fas fa-chart-line"></i> Activitatea Utilizatorului</h4>
                             <p>Tipuri de activități înregistrate</p>
                         </div>
                         <div class="chart-wrapper">
@@ -207,53 +167,22 @@
                     </div>
                 </div>
 
-                <!-- Fourth Row - Budget Analysis -->
-                <div class="charts-row">
-                    <div class="chart-container chart-full-width">
-                        <div class="chart-header">
-                            <h4><i class="fas fa-chart-line"></i> Analiza Detaliată Buget</h4>
-                            <p>Comparația bugetelor minime și maxime în timp</p>
+                <!-- Insights Section -->
+                <div class="insights-section" style="margin-top: 2rem; background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <h3><i class="fas fa-lightbulb" style="color: #fb8500;"></i> Recomandări și Insight-uri</h3>
+                    <div class="insights-content" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="insight-card" style="padding: 1rem; border-left: 4px solid #3b82f6; background: #f3f4f6; border-radius: 4px;">
+                            <h5><i class="fas fa-map-marker-alt"></i> Sugestie Destinație</h5>
+                            <p id="destinationInsightText" style="margin-top: 0.5rem; color: #4b5563;">Se încarcă...</p>
                         </div>
-                        <div class="chart-wrapper">
-                            <canvas id="budgetRangeChart"></canvas>
+                        <div class="insight-card" style="padding: 1rem; border-left: 4px solid #8b5cf6; background: #f3f4f6; border-radius: 4px;">
+                            <h5><i class="fas fa-tags"></i> Preferință Categorie</h5>
+                            <p id="categoryInsightText" style="margin-top: 0.5rem; color: #4b5563;">Se încarcă...</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Additional Insights Section -->
-            <div class="insights-section">
-                <h3><i class="fas fa-lightbulb"></i> Insights & Recomandări</h3>
-                <div class="insights-cards">
-                    <div class="insight-card" id="budgetInsight">
-                        <div class="insight-icon">
-                            <i class="fas fa-coins"></i>
-                        </div>
-                        <div class="insight-content">
-                            <h4>Buget</h4>
-                            <p id="budgetInsightText">Analizez preferințele de buget...</p>
-                        </div>
-                    </div>
-                    <div class="insight-card" id="destinationInsight">
-                        <div class="insight-icon">
-                            <i class="fas fa-map-marker-alt"></i>
-                        </div>
-                        <div class="insight-content">
-                            <h4>Destinații</h4>
-                            <p id="destinationInsightText">Analizez preferințele de destinații...</p>
-                        </div>
-                    </div>
-                    <div class="insight-card" id="categoryInsight">
-                        <div class="insight-icon">
-                            <i class="fas fa-tags"></i>
-                        </div>
-                        <div class="insight-content">
-                            <h4>Categorii</h4>
-                            <p id="categoryInsightText">Analizez preferințele de categorii...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
       </div>
       <div class="section news">

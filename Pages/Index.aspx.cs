@@ -1,26 +1,24 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using WebAdminDashboard.Classes.Database;
-using WebAdminDashboard.Classes.DTO;
-using System.Web.Services;
-using System.Web.Script.Serialization;
-using WebAdminDashboard.Classes.Database.Repositories;
-using WebAdminDashboard.Classes.Library;
-using Newtonsoft.Json;
+using System.Data.Entity;
 using System.Diagnostics;
 using System.IO;
-using System.Threading.Tasks;
+using System.Linq;
 using System.Net.Http;
-using System.Data.Entity;
+using System.Threading.Tasks;
+using System.Web.Services;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+using WebAdminDashboard.Classes.Database.Repositories;
+using WebAdminDashboard.Classes.DTO;
+using WebAdminDashboard.Classes.Library;
+using WebAdminDashboard.Classes.Library.Enums;
 using AppContext = WebAdminDashboard.Classes.Database.AppContext;
 
 namespace WebAdminDashboard
 {
-    public partial class Index : System.Web.UI.Page
+    public partial class Index : Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -144,7 +142,7 @@ namespace WebAdminDashboard
                 using (var repository = new FacilitateRepository())
                 {
                     var facilitate = repository.GetById(id);
-                    
+
                     if (facilitate == null)
                     {
                         return JsonConvert.SerializeObject(new { success = false, message = "Facilitatea nu a fost găsită" });
@@ -152,7 +150,7 @@ namespace WebAdminDashboard
 
                     facilitate.Denumire = denumire.Trim();
                     facilitate.Descriere = !string.IsNullOrWhiteSpace(descriere) ? descriere.Trim() : null;
-                    
+
                     repository.Update(facilitate);
 
                     return JsonConvert.SerializeObject(new { success = true });
@@ -173,7 +171,7 @@ namespace WebAdminDashboard
                 using (var destinatieFacilitateRepo = new DestinatieFacilitateRepository())
                 {
                     var facilitate = repository.GetById(id);
-                    
+
                     if (facilitate == null)
                     {
                         return JsonConvert.SerializeObject(new { success = false, message = "Facilitatea nu a fost găsită" });
@@ -181,12 +179,13 @@ namespace WebAdminDashboard
 
                     // Verifică dacă există relații în tabelele asociate înainte de ștergere
                     var areRelatii = destinatieFacilitateRepo.GetAll().Any(df => df.Id_Facilitate == id);
-                    
+
                     if (areRelatii)
                     {
-                        return JsonConvert.SerializeObject(new { 
-                            success = false, 
-                            message = "Nu se poate șterge această facilitate deoarece este folosită în alte înregistrări" 
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            message = "Nu se poate șterge această facilitate deoarece este folosită în alte înregistrări"
                         });
                     }
 
@@ -196,9 +195,10 @@ namespace WebAdminDashboard
             }
             catch (Exception ex)
             {
-                return JsonConvert.SerializeObject(new { 
-                    success = false, 
-                    message = "Eroare la ștergerea facilității" 
+                return JsonConvert.SerializeObject(new
+                {
+                    success = false,
+                    message = "Eroare la ștergerea facilității"
                 });
             }
         }
@@ -211,7 +211,7 @@ namespace WebAdminDashboard
                 using (var repository = new PunctDeInteresRepository())
                 {
                     var data = repository.GetAll();
-                    
+
                     // Map to include destination data
                     var result = data.Select(p => new
                     {
@@ -228,7 +228,7 @@ namespace WebAdminDashboard
                             Oras = p.Destinatie.Oras
                         } : null
                     }).ToList();
-                    
+
                     return JsonConvert.SerializeObject(result);
                 }
             }
@@ -246,7 +246,7 @@ namespace WebAdminDashboard
                 using (var repository = new SugestieRepository())
                 {
                     var data = repository.GetAll();
-                    
+
                     // Map to include destination and user data
                     var result = data.Select(s => new
                     {
@@ -275,7 +275,7 @@ namespace WebAdminDashboard
                             Email = s.Utilizator.Email
                         } : null
                     }).ToList();
-                    
+
                     return JsonConvert.SerializeObject(result);
                 }
             }
@@ -292,7 +292,7 @@ namespace WebAdminDashboard
             {
                 // Use real NewsAPI with more relaxed travel queries
                 const string NEWS_API_KEY = "2b235b384b3a4897b900cc0c7799b848";
-                
+
                 // Simplified, more relaxed queries to get more results
                 var queries = new Dictionary<string, string>
                 {
@@ -303,7 +303,7 @@ namespace WebAdminDashboard
                 };
 
                 var query = queries.ContainsKey(category) ? queries[category] : queries["travel"];
-                
+
                 // Remove domain restriction to get more results
                 var apiUrl = $"https://newsapi.org/v2/everything?q={Uri.EscapeDataString(query)}&language=en&sortBy=publishedAt&page={page}&pageSize=12&apiKey={NEWS_API_KEY}";
 
@@ -311,12 +311,12 @@ namespace WebAdminDashboard
                 {
                     var response = await httpClient.GetStringAsync(apiUrl);
                     var newsResponse = JsonConvert.DeserializeObject<dynamic>(response);
-                    
+
                     if (newsResponse.status == "ok" && newsResponse.articles != null)
                     {
                         // More relaxed server-side filtering
                         var filteredArticles = FilterTravelRelevantNewsRelaxed(newsResponse.articles);
-                        
+
                         if (filteredArticles.Count > 0)
                         {
                             return JsonConvert.SerializeObject(new { success = true, articles = filteredArticles });
@@ -355,25 +355,25 @@ namespace WebAdminDashboard
         {
             var travelKeywords = new[] { "travel", "vacation", "holiday", "tourism", "tourist", "destination", "trip", "resort", "hotel", "flight", "cruise", "beach", "mountain", "adventure", "attractions", "guide", "visit", "explore", "city", "country" };
             var excludeKeywords = new[] { "politics", "election", "war", "murder", "death", "crime", "arrest", "disaster", "earthquake", "pandemic", "virus", "covid-19", "lawsuit", "court", "protest", "violence", "terrorism" };
-            
+
             var filteredArticles = new List<object>();
-            
+
             foreach (var article in articles)
             {
                 var title = (article.title?.ToString() ?? "").ToLower();
                 var description = (article.description?.ToString() ?? "").ToLower();
                 var fullText = title + " " + description;
-                
+
                 var hasTravelKeywords = travelKeywords.Any(keyword => fullText.Contains(keyword));
                 var hasStronglyExcludedKeywords = excludeKeywords.Any(keyword => fullText.Contains(keyword));
-                
+
                 // More lenient: include if has travel keywords OR doesn't have strongly excluded keywords
                 if (hasTravelKeywords || !hasStronglyExcludedKeywords)
                 {
                     filteredArticles.Add(article);
                 }
             }
-            
+
             return filteredArticles.Take(6).ToList(); // Return max 6 relevant articles
         }
 
@@ -381,7 +381,7 @@ namespace WebAdminDashboard
         {
             var currentYear = DateTime.Now.Year;
             var currentSeason = GetCurrentSeason();
-            
+
             var titles = new Dictionary<string, string[]>
             {
                 ["travel"] = new[]
@@ -439,8 +439,8 @@ namespace WebAdminDashboard
                 "Expert travel photography and detailed itineraries showcasing the best each destination offers. From luxury resorts to budget backpacking, find the perfect travel style for your next vacation."
             };
 
-            var sources = new[] { 
-                "Travel + Leisure", "Conde Nast Traveler", "National Geographic Travel", 
+            var sources = new[] {
+                "Travel + Leisure", "Conde Nast Traveler", "National Geographic Travel",
                 "Lonely Planet", "Travel Weekly", "Tourism Today", "Vacation Magazine",
                 "Adventure Travel News", "Hospitality Net", "Travel Trade Gazette"
             };
@@ -475,7 +475,7 @@ namespace WebAdminDashboard
         private static string GetCurrentSeason()
         {
             var month = DateTime.Now.Month;
-            
+
             if (month == 12 || month == 1 || month == 2)
                 return "Winter";
             else if (month >= 3 && month <= 5)
@@ -533,7 +533,7 @@ namespace WebAdminDashboard
                             {
                                 BlobAzureStorage.DeleteImage(categorie.ImagineUrl);
                             }
-                            
+
                             // Update with new image URL
                             categorie.ImagineUrl = imageUrl;
                             repository.Update(categorie);
@@ -556,14 +556,14 @@ namespace WebAdminDashboard
             {
                 Debug.WriteLine($"[DEBUG] AddCategorieVacanta started - ID: {categorieId}, Denumire: {denumire}, File: {fileName}");
                 Debug.WriteLine($"[DEBUG] Base64 length: {base64Image?.Length ?? 0} characters");
-                
+
                 if (string.IsNullOrEmpty(denumire))
                 {
                     return JsonConvert.SerializeObject(new { success = false, message = "Denumirea este obligatorie" });
                 }
 
                 string imageUrl = null;
-                
+
                 // 1. Upload image to Azure Blob Storage first
                 if (!string.IsNullOrEmpty(base64Image) && !string.IsNullOrEmpty(fileName))
                 {
@@ -576,7 +576,7 @@ namespace WebAdminDashboard
                         {
                             var contentType = BlobAzureStorage.GetContentTypeFromFileName(fileName);
                             Debug.WriteLine($"[DEBUG] Content type detected: {contentType}");
-                            
+
                             if (BlobAzureStorage.IsValidImageType(contentType))
                             {
                                 Debug.WriteLine("[DEBUG] Content type is valid. Preparing for Azure Blob upload...");
@@ -587,21 +587,23 @@ namespace WebAdminDashboard
                                     Debug.WriteLine($"[DEBUG] Uploading to Azure Blob: {customFileName}");
                                     imageUrl = BlobAzureStorage.UploadImage(imageBytes, customFileName, contentType);
                                     Debug.WriteLine($"[DEBUG] Azure Blob upload completed. URL: {imageUrl}");
-                                    
+
                                     if (string.IsNullOrEmpty(imageUrl))
                                     {
-                                        return JsonConvert.SerializeObject(new { 
-                                            success = false, 
-                                            message = "Eroare la încărcarea imaginii în Azure Blob Storage" 
+                                        return JsonConvert.SerializeObject(new
+                                        {
+                                            success = false,
+                                            message = "Eroare la încărcarea imaginii în Azure Blob Storage"
                                         });
                                     }
                                 }
                             }
                             else
                             {
-                                return JsonConvert.SerializeObject(new { 
-                                    success = false, 
-                                    message = "Tip de fișier imagine neacceptat" 
+                                return JsonConvert.SerializeObject(new
+                                {
+                                    success = false,
+                                    message = "Tip de fișier imagine neacceptat"
                                 });
                             }
                         }
@@ -609,9 +611,10 @@ namespace WebAdminDashboard
                     catch (Exception imgEx)
                     {
                         Debug.WriteLine($"Image upload error: {imgEx.Message}");
-                        return JsonConvert.SerializeObject(new { 
-                            success = false, 
-                            message = "Eroare la procesarea imaginii" 
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            message = "Eroare la procesarea imaginii"
                         });
                     }
                 }
@@ -632,13 +635,14 @@ namespace WebAdminDashboard
                         Debug.WriteLine("[DEBUG] Inserting category into database...");
                         repository.Insert(categorie);
                         Debug.WriteLine("[DEBUG] Category successfully inserted into database");
-                        
-                        var result = new { 
-                            success = true, 
+
+                        var result = new
+                        {
+                            success = true,
                             message = "Categoria a fost adăugată cu succes",
                             imageUrl = imageUrl
                         };
-                        
+
                         Debug.WriteLine($"[DEBUG] Returning success response: {JsonConvert.SerializeObject(result)}");
                         return JsonConvert.SerializeObject(result);
                     }
@@ -647,17 +651,19 @@ namespace WebAdminDashboard
                         // If database save fails, try to delete the uploaded image
                         if (!string.IsNullOrEmpty(imageUrl))
                         {
-                            try { BlobAzureStorage.DeleteImage(imageUrl); } 
-                            catch (Exception delEx) { 
+                            try { BlobAzureStorage.DeleteImage(imageUrl); }
+                            catch (Exception delEx)
+                            {
                                 Debug.WriteLine($"Failed to delete image from Azure Blob Storage: {delEx.Message}");
                                 // Continue with the original error
                             }
                         }
-                        
+
                         Debug.WriteLine($"Database error: {dbEx.Message}");
-                        return JsonConvert.SerializeObject(new { 
-                            success = false, 
-                            message = "Eroare la salvarea în baza de date" 
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = false,
+                            message = "Eroare la salvarea în baza de date"
                         });
                     }
                 }
@@ -688,7 +694,7 @@ namespace WebAdminDashboard
                 using (var repository = new CategorieVacantaRepository())
                 {
                     var categorie = repository.GetById(id);
-                    
+
                     if (categorie == null)
                     {
                         return JsonConvert.SerializeObject(new { success = false, message = "Categoria nu a fost gasita" });
@@ -734,7 +740,7 @@ namespace WebAdminDashboard
             try
             {
                 System.Diagnostics.Debug.WriteLine($"AddDestinatie called with: denumire={denumire}, tara={tara}, oras={oras}, regiune={regiune}, pretAdult={pretAdult}, pretMinor={pretMinor}, imageUrls count={imageUrls?.Length ?? 0}");
-                
+
                 if (string.IsNullOrWhiteSpace(denumire) || string.IsNullOrWhiteSpace(tara) || string.IsNullOrWhiteSpace(oras) || string.IsNullOrWhiteSpace(regiune))
                 {
                     return JsonConvert.SerializeObject(new { success = false, message = "Toate câmpurile obligatorii trebuie completate" });
@@ -792,7 +798,7 @@ namespace WebAdminDashboard
                                     // Generate unique ID for each image using GUID
                                     var imageGuidHash = Math.Abs(Guid.NewGuid().GetHashCode());
                                     var imagineId = imageGuidHash % 1000000 + (i * 10000) + new Random().Next(1, 999);
-                                    System.Diagnostics.Debug.WriteLine($"Generated imagineId {i+1}: {imagineId}");
+                                    System.Diagnostics.Debug.WriteLine($"Generated imagineId {i + 1}: {imagineId}");
 
                                     var imagineDestinatie = new ImaginiDestinatie
                                     {
@@ -800,10 +806,10 @@ namespace WebAdminDashboard
                                         Id_ImaginiDestinatie = imagineId,
                                         ImagineUrl = imageUrls[i]
                                     };
-                                    System.Diagnostics.Debug.WriteLine($"ImaginiDestinatie object {i+1} created");
+                                    System.Diagnostics.Debug.WriteLine($"ImaginiDestinatie object {i + 1} created");
 
                                     imaginiRepository.Insert(imagineDestinatie);
-                                    System.Diagnostics.Debug.WriteLine($"Image {i+1} inserted successfully");
+                                    System.Diagnostics.Debug.WriteLine($"Image {i + 1} inserted successfully");
                                 }
                             }
                         }
@@ -827,7 +833,7 @@ namespace WebAdminDashboard
             try
             {
                 System.Diagnostics.Debug.WriteLine($"SearchPexelsImages called with query: {query}, perPage: {perPage}");
-                
+
                 if (string.IsNullOrWhiteSpace(query))
                 {
                     System.Diagnostics.Debug.WriteLine("Query is null or empty");
@@ -835,9 +841,9 @@ namespace WebAdminDashboard
                 }
 
                 System.Diagnostics.Debug.WriteLine("Calling PhotoAPIUtils.SearchPhotos...");
-                
+
                 var result = PhotoAPIUtils.SearchPhotos(query, perPage, 1);
-                
+
                 System.Diagnostics.Debug.WriteLine($"PhotoAPIUtils returned result: {result != null}");
 
                 if (result != null && result.Photos != null)
@@ -868,7 +874,7 @@ namespace WebAdminDashboard
                 var innerEx = aggEx.InnerException ?? aggEx;
                 System.Diagnostics.Debug.WriteLine($"Inner exception: {innerEx.Message}");
                 System.Diagnostics.Debug.WriteLine($"Stack trace: {innerEx.StackTrace}");
-                
+
                 return JsonConvert.SerializeObject(new
                 {
                     success = false,
@@ -879,7 +885,7 @@ namespace WebAdminDashboard
             {
                 System.Diagnostics.Debug.WriteLine($"Exception in SearchPexelsImages: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
-                
+
                 return JsonConvert.SerializeObject(new
                 {
                     success = false,
@@ -894,7 +900,7 @@ namespace WebAdminDashboard
             try
             {
                 System.Diagnostics.Debug.WriteLine($"DeleteDestinatie called with destinatieId: {destinatieId}");
-                
+
                 using (var destinatieRepository = new DestinatieRepository())
                 {
                     var destinatie = destinatieRepository.GetById(destinatieId);
@@ -913,9 +919,9 @@ namespace WebAdminDashboard
                     {
                         var imaginiToDelete = context.ImaginiDestinatie
                             .Where(i => i.Id_Destinatie == destinatieId).ToList();
-                        
+
                         System.Diagnostics.Debug.WriteLine($"Found {imaginiToDelete.Count} images to delete");
-                        
+
                         if (imaginiToDelete.Any())
                         {
                             context.ImaginiDestinatie.RemoveRange(imaginiToDelete);
@@ -995,26 +1001,12 @@ namespace WebAdminDashboard
         }
 
         [WebMethod]
-        public static string GetUserPreferencesAnalytics(int userId)
+        public static string GetUserAnalyticsData(int userId)
         {
             try
             {
-                using (var prefRepository = new PreferinteUtilizatorRepository())
                 using (var context = new AppContext())
                 {
-                    // Get user preferences with related data
-                    var preferences = context.PreferinteUtilizator
-                        .Where(p => p.Id_Utilizator == userId)
-                        .Include(p => p.CategorieVacanta)
-                        .Include(p => p.Destinatie)
-                        .Include(p => p.Utilizator)
-                        .ToList();
-
-                    if (!preferences.Any())
-                    {
-                        return JsonConvert.SerializeObject(new { success = false, message = "Nu există preferințe pentru acest utilizator" });
-                    }
-
                     // Get activity logs
                     var logRepository = new LogActivitateRepository();
                     var activityLogs = logRepository.GetAll()
@@ -1028,61 +1020,33 @@ namespace WebAdminDashboard
                         .Where(f => f.Id_Utilizator == userId)
                         .ToList();
 
+                    // Generate Recommendation Scores for Analytics
+                    var recService = new RecommendationService();
+                    var userCategories = recService.GetEntityScores(userId, TipEntitate.CategorieVacanta);
+                    var userDestinations = recService.GetEntityScores(userId, TipEntitate.Destinatie);
+
+                    var catRepo = new CategorieVacantaRepository();
+                    var destRepo = new DestinatieRepository();
+
+                    var categoriesDistribution = userCategories
+                        .Select(kvp => new { category = catRepo.GetById(kvp.Key)?.Denumire ?? "Necunoscut", count = kvp.Value })
+                        .OrderByDescending(x => x.count)
+                        .Take(10)
+                        .ToList();
+
+                    var destinationsDistribution = userDestinations
+                        .Select(kvp => new { destination = destRepo.GetById(kvp.Key)?.Denumire ?? "Necunoscut", count = kvp.Value })
+                        .OrderByDescending(x => x.count)
+                        .Take(10)
+                        .ToList();
+
                     // Prepare analytics data
                     var analytics = new
                     {
                         // Quick Stats
-                        totalPreferences = preferences.Count,
                         totalFavorites = favorites.Count,
                         totalActivities = activityLogs.Count,
                         lastActivity = activityLogs.FirstOrDefault()?.DataInregistrare?.ToString("dd/MM/yyyy HH:mm"),
-
-                        // Categories Distribution
-                        categoriesDistribution = preferences
-                            .GroupBy(p => p.CategorieVacanta?.Denumire ?? "Necunoscut")
-                            .Select(g => new { category = g.Key, count = g.Count() })
-                            .OrderByDescending(x => x.count)
-                            .ToList(),
-
-                        // Destinations Distribution
-                        destinationsDistribution = preferences
-                            .GroupBy(p => p.Destinatie?.Denumire ?? "Necunoscut")
-                            .Select(g => new { destination = g.Key, count = g.Count() })
-                            .OrderByDescending(x => x.count)
-                            .Take(10)
-                            .ToList(),
-
-                        // Countries Distribution
-                        countriesDistribution = preferences
-                            .GroupBy(p => p.Destinatie?.Tara ?? "Necunoscut")
-                            .Select(g => new { country = g.Key, count = g.Count() })
-                            .OrderByDescending(x => x.count)
-                            .ToList(),
-
-                        // Budget Analysis
-                        budgetAnalysis = new
-                        {
-                            averageMinBudget = preferences.Where(p => p.Buget_Minim.HasValue).Any() ? 
-                                preferences.Where(p => p.Buget_Minim.HasValue).Average(p => p.Buget_Minim.Value) : 0,
-                            averageMaxBudget = preferences.Where(p => p.Buget_Maxim.HasValue).Any() ? 
-                                preferences.Where(p => p.Buget_Maxim.HasValue).Average(p => p.Buget_Maxim.Value) : 0,
-                            budgetRanges = preferences
-                                .Where(p => p.Buget_Minim.HasValue && p.Buget_Maxim.HasValue)
-                                .Select(p => new 
-                                { 
-                                    min = p.Buget_Minim.Value, 
-                                    max = p.Buget_Maxim.Value,
-                                    date = p.Data_Inregistrare.ToString("MM/yyyy")
-                                })
-                                .ToList()
-                        },
-
-                        // Timeline Data
-                        timelineData = preferences
-                            .GroupBy(p => p.Data_Inregistrare.ToString("MM/yyyy"))
-                            .Select(g => new { date = g.Key, count = g.Count() })
-                            .OrderBy(x => x.date)
-                            .ToList(),
 
                         // Activity Types Distribution
                         activityDistribution = activityLogs
@@ -1091,25 +1055,8 @@ namespace WebAdminDashboard
                             .OrderByDescending(x => x.count)
                             .ToList(),
 
-                        // Favorite Categories
-                        favoriteCategory = preferences
-                            .GroupBy(p => p.CategorieVacanta?.Denumire ?? "Necunoscut")
-                            .OrderByDescending(g => g.Count())
-                            .FirstOrDefault()?.Key ?? "Necunoscut",
-
-                        // Recent Preferences
-                        recentPreferences = preferences
-                            .OrderByDescending(p => p.Data_Inregistrare)
-                            .Take(5)
-                            .Select(p => new
-                            {
-                                categoria = p.CategorieVacanta?.Denumire,
-                                destinatie = p.Destinatie?.Denumire,
-                                buget_min = p.Buget_Minim,
-                                buget_max = p.Buget_Maxim,
-                                data = p.Data_Inregistrare.ToString("dd/MM/yyyy")
-                            })
-                            .ToList()
+                        categoriesDistribution = categoriesDistribution,
+                        destinationsDistribution = destinationsDistribution
                     };
 
                     return JsonConvert.SerializeObject(new { success = true, data = analytics });
@@ -1126,93 +1073,23 @@ namespace WebAdminDashboard
         {
             try
             {
-                using (var context = new AppContext())
+                var recService = new WebAdminDashboard.Classes.Library.RecommendationService();
+
+                var topDest = recService.GetRecommendedDestinations(userId, 1).FirstOrDefault();
+                var topCat = recService.GetRecommendedCategories(userId, 1).FirstOrDefault();
+
+                var insights = new
                 {
-                    var preferences = context.PreferinteUtilizator
-                        .Where(p => p.Id_Utilizator == userId)
-                        .Include(p => p.CategorieVacanta)
-                        .Include(p => p.Destinatie)
-                        .ToList();
+                    destinationInsight = topDest != null ? $"Pe baza istoricului de activitate, cea mai recomandată destinație pentru acest utilizator este {topDest.Denumire} ({topDest.Tara})." : "Nu există suficiente date pentru a sugera o destinație.",
+                    categoryInsight = topCat != null ? $"Utilizatorul prezintă un mare interes pentru vacanțele de tipul: {topCat.Denumire}." : "Nu există suficiente interacțiuni pentru a determina o categorie de vacanță preferată."
+                };
 
-                    if (!preferences.Any())
-                    {
-                        return JsonConvert.SerializeObject(new { success = false, message = "Nu există date pentru generarea insights-urilor" });
-                    }
-
-                    // Generate insights
-                    var insights = new
-                    {
-                        budgetInsight = GenerateBudgetInsight(preferences),
-                        destinationInsight = GenerateDestinationInsight(preferences),
-                        categoryInsight = GenerateCategoryInsight(preferences)
-                    };
-
-                    return JsonConvert.SerializeObject(new { success = true, insights = insights });
-                }
+                return JsonConvert.SerializeObject(new { success = true, insights = insights });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la generarea insights-urilor" });
+                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la generarea insight-urilor" });
             }
-        }
-
-        private static string GenerateBudgetInsight(List<PreferinteUtilizator> preferences)
-        {
-            var budgets = preferences.Where(p => p.Buget_Minim.HasValue && p.Buget_Maxim.HasValue).ToList();
-            if (!budgets.Any()) return "Nu există date suficiente despre buget.";
-
-            var avgMin = budgets.Average(p => p.Buget_Minim.Value);
-            var avgMax = budgets.Average(p => p.Buget_Maxim.Value);
-            var avgRange = avgMax - avgMin;
-
-            string budgetLevel = avgMax < 500 ? "economic" : avgMax < 1500 ? "mediu" : "premium";
-            
-            return $"Utilizatorul preferă vacanțe cu buget {budgetLevel} (în medie {avgMin:F0}-{avgMax:F0} RON). " +
-                   $"Flexibilitatea bugetului este {(avgRange > 500 ? "mare" : "mică")} ({avgRange:F0} RON diferență).";
-        }
-
-        private static string GenerateDestinationInsight(List<PreferinteUtilizator> preferences)
-        {
-            var destinations = preferences.Where(p => p.Destinatie != null).ToList();
-            if (!destinations.Any()) return "Nu există date despre destinații.";
-
-            var topDestination = destinations
-                .GroupBy(p => p.Destinatie.Denumire)
-                .OrderByDescending(g => g.Count())
-                .FirstOrDefault();
-
-            var countries = destinations
-                .GroupBy(p => p.Destinatie.Tara)
-                .Count();
-
-            var domesticCount = destinations.Count(p => p.Destinatie.Tara.ToLower().Contains("romania"));
-            var internationalCount = destinations.Count - domesticCount;
-
-            string preference = domesticCount > internationalCount ? "destinații interne" : "destinații internaționale";
-            
-            return $"Utilizatorul preferă {preference}. Destinația favorită este {topDestination?.Key} " +
-                   $"({topDestination?.Count()} preferințe). Explorează destinații din {countries} țări diferite.";
-        }
-
-        private static string GenerateCategoryInsight(List<PreferinteUtilizator> preferences)
-        {
-            var categories = preferences.Where(p => p.CategorieVacanta != null).ToList();
-            if (!categories.Any()) return "Nu există date despre categorii.";
-
-            var topCategory = categories
-                .GroupBy(p => p.CategorieVacanta.Denumire)
-                .OrderByDescending(g => g.Count())
-                .FirstOrDefault();
-
-            var diversity = categories
-                .GroupBy(p => p.CategorieVacanta.Denumire)
-                .Count();
-
-            string diversityLevel = diversity == 1 ? "foarte focalizate" : diversity <= 3 ? "focalizate" : "diverse";
-            
-            return $"Preferințele sunt {diversityLevel} cu accent pe {topCategory?.Key} " +
-                   $"({topCategory?.Count()} din {categories.Count} preferințe). " +
-                   $"Explorează {diversity} tipuri diferite de vacanțe.";
         }
     }
 }

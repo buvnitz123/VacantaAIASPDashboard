@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
@@ -56,7 +56,6 @@ namespace WebAdminDashboard.Classes.Database
         public DbSet<Facilitate> Facilitati { get; set; }
         public DbSet<PunctDeInteres> PuncteDeInteres { get; set; }
         public DbSet<Sugestie> Sugestii { get; set; }
-        public DbSet<PreferinteUtilizator> PreferinteUtilizator { get; set; }
         public DbSet<Recenzie> Recenzii { get; set; }
         public DbSet<LogActivitate> LogActivitate { get; set; }
         public DbSet<MesajAI> MesajeAI { get; set; }

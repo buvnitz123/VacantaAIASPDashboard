@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -24,10 +24,6 @@ namespace WebAdminDashboard.Classes.DTO
         [StringLength(50)]
         [Column("TipActivitate")]
         public string TipActivitate { get; set; }
-
-        [StringLength(50)]
-        [Column("IdActivitate")]
-        public string IdActivitate { get; set; }
 
         [Column("DataInregistrare")]
         public DateTime? DataInregistrare { get; set; }
