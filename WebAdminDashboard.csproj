@@ -143,6 +143,8 @@
     <Content Include="Content\user-analytics.css" />
     <Content Include="Content\user-detail.css" />
     <Content Include="Pages\DestinationDetail.aspx" />
+    <Content Include="Pages\Login.aspx" />
+    <Content Include="Pages\Logout.aspx" />
     <Content Include="Pages\News.ascx" />
     <Content Include="Pages\Shared\Navbar.ascx" />
     <Content Include="Pages\Shared\Sidebar.ascx" />
@@ -166,6 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\Database\AppContext.cs" />
+    <Compile Include="Classes\Database\Repositories\AppSettingsRepository.cs" />
     <Compile Include="Classes\Database\Repositories\CategorieVacantaRepository.cs" />
     <Compile Include="Classes\Database\Repositories\CategorieVacanta_DestinatieRepository.cs" />
     <Compile Include="Classes\Database\Repositories\ConversatieAIRepository.cs" />
@@ -181,6 +184,7 @@
     <Compile Include="Classes\Database\Repositories\RecenzieRepository.cs" />
     <Compile Include="Classes\Database\Repositories\SugestieRepository.cs" />
     <Compile Include="Classes\Database\Repositories\UtilizatorRepository.cs" />
+    <Compile Include="Classes\DTO\AppSettings.cs" />
     <Compile Include="Classes\DTO\CategorieVacanta.cs" />
     <Compile Include="Classes\DTO\CategorieVacanta_Destinatie.cs" />
     <Compile Include="Classes\DTO\ConversatieAI.cs" />
@@ -196,6 +200,9 @@
     <Compile Include="Classes\DTO\Recenzie.cs" />
     <Compile Include="Classes\DTO\Sugestie.cs" />
     <Compile Include="Classes\DTO\Utilizator.cs" />
+    <Compile Include="Classes\Library\AuthenticatedPage.cs">
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
     <Compile Include="Classes\Library\EncryptionUtils.cs" />
     <Compile Include="Classes\Library\Enums\TipActivitate.cs" />
     <Compile Include="Classes\Library\Enums\TipEntitate.cs" />
@@ -219,6 +226,27 @@
     <Compile Include="Pages\Index.aspx.designer.cs">
       <DependentUpon>Index.aspx</DependentUpon>
     </Compile>
+    <Compile Include="Pages\Login.aspx.cs">
+      <DependentUpon>Login.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Pages\Login.aspx.designer.cs">
+      <DependentUpon>Login.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Logout.aspx.cs">
+      <DependentUpon>Logout.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Pages\Logout.aspx.designer.cs">
+      <DependentUpon>Logout.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\Shared\Navbar.ascx.cs">
+      <DependentUpon>Navbar.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Pages\Shared\Navbar.ascx.designer.cs">
+      <DependentUpon>Navbar.ascx</DependentUpon>
+    </Compile>
     <Compile Include="Pages\UserDetail.aspx.cs">
       <DependentUpon>UserDetail.aspx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -227,12 +255,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Properties\PublishProfiles\WebAdminDashboard20260516224600 - Web Deploy.pubxml" />
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="packages\AWSSDK.S3.4.0.6.8\analyzers\dotnet\cs\AWSSDK.S3.CodeAnalysis.dll" />
     <Analyzer Include="packages\AWSSDK.S3.4.0.6.8\analyzers\dotnet\cs\SharedAnalysisCode.dll" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="SQL\" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

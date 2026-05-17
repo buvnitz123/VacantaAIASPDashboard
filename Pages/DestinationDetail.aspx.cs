@@ -7,10 +7,11 @@ using System.Web.Services;
 using System.Linq;
 using System.Data.Entity;
 using System.Collections.Generic;
+using WebAdminDashboard.Classes.Library;
 
 namespace WebAdminDashboard
 {
-    public partial class DestinationDetail : System.Web.UI.Page
+    public partial class DestinationDetail : AuthenticatedPage
     {
         protected void Page_Load(object sender, EventArgs e)
         {

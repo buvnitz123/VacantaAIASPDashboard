@@ -1,4 +1,4 @@
-$(function () {
+﻿$(function () {
     var dialog, form,
         denumire = $("#denumire"),
         imagine = $("#imagine"),
@@ -233,10 +233,8 @@ $(function () {
     var previewDialog = $("#dialog-preview-categorie").dialog({
         autoOpen: false,
         modal: true,
-        width: 'auto',
-        maxWidth: '90%',
+        width: 500,
         height: 'auto',
-        maxHeight: '90vh',
         position: { my: "center", at: "center", of: window },
         buttons: {
             "Inchide": function() {

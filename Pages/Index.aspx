@@ -17,9 +17,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard</title>
-    <link href="/Content/styles.css?v=7" rel="stylesheet" />
+    <link href="/Content/styles.css?v=9" rel="stylesheet" />
     <link href="/Content/news.css?v=2" rel="stylesheet" />
-    <link href="/Content/categorie-vacanta.css?v=2" rel="stylesheet" />
+    <link href="/Content/categorie-vacanta.css?v=3" rel="stylesheet" />
     <link href="/Content/facilitate.css?v=14" rel="stylesheet" />
     <link href="/Content/destinatie.css?v=3" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -33,7 +33,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/Scripts/app.js?v=8"></script>
     <script src="/Scripts/news.js?v=5"></script>
-    <script src="/Scripts/categorie-vacanta.js?v=2"></script>
+    <script src="/Scripts/categorie-vacanta.js?v=3"></script>
     <script src="/Scripts/facilitate.js?v=15"></script>
     <script src="/Scripts/destinatie.js?v=4"></script>
     <script src="/Scripts/user-detail.js"></script>
@@ -45,7 +45,7 @@
 
     <uc:Sidebar runat="server" ID="LeftSidebar" />
 
-    <div class="content expanded-when-collapsed">
+    <div class="content">
       <div class="section home active">
         <h2>Dashboard Analytics - Preferințe Utilizatori</h2>
         

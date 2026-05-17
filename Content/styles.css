@@ -131,22 +131,55 @@ div.content.expanded-when-collapsed {
 
 @media screen and (max-width: 700px) {
     body {
-        padding-top: 110px; /* More space for mobile navbar */
+        padding-top: 110px; /* Space for navbar + sidebar */
     }
-    
-    .sidebar {
+
+    .sidebar,
+    .sidebar.collapsed {
         width: 100%;
         height: auto;
-        position: relative;
-        top: 0;
-        box-shadow: none;
+        position: fixed;
+        top: 48px;
+        left: 0;
+        display: flex;
+        flex-wrap: wrap;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: visible;
+    }
+
+    .sidebar a.sidebar-toggle {
+        display: none;
     }
 
     .sidebar a {
-        float: left;
+        float: none;
+        flex: 0 0 auto;
+        padding: 10px 12px;
+        font-size: 14px;
+        text-align: center;
     }
 
-    div.content {
+    .sidebar a .label,
+    .sidebar.collapsed a .label {
+        opacity: 1;
+        width: auto;
+        overflow: visible;
+        display: inline-block;
+    }
+
+    .sidebar.collapsed a {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px 12px;
+    }
+
+    .sidebar.collapsed a i {
+        margin-right: 8px;
+    }
+
+    div.content,
+    div.content.expanded-when-collapsed {
         margin-left: 0;
         padding-top: 10px;
     }
@@ -154,8 +187,9 @@ div.content.expanded-when-collapsed {
 
 @media screen and (max-width: 400px) {
     .sidebar a {
-        text-align: center;
-        float: none;
+        flex: 1 1 auto;
+        font-size: 12px;
+        padding: 8px 6px;
     }
 }
 

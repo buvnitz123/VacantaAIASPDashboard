@@ -65,5 +65,6 @@ namespace WebAdminDashboard.Classes.Database
         public DbSet<ConversatieAI> ConversatiiAI { get; set; }
         public DbSet<DestinatieFacilitate> DestinatieFacilitate { get; set; }
         public DbSet<CategorieVacanta_Destinatie> CategorieVacanta_Destinatie { get; set; }
+        public DbSet<AppSettings> AppSettings { get; set; }
     }
 }

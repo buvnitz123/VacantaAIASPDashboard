@@ -18,7 +18,7 @@ using AppContext = WebAdminDashboard.Classes.Database.AppContext;
 
 namespace WebAdminDashboard
 {
-    public partial class Index : Page
+    public partial class Index : AuthenticatedPage
     {
         protected void Page_Load(object sender, EventArgs e)
         {

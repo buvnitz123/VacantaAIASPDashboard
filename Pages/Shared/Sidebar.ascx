@@ -1,5 +1,5 @@
-<%@ Control Language="C#" %>
-<div class="sidebar collapsed" id="sidebar">
+﻿<%@ Control Language="C#" %>
+<div class="sidebar" id="sidebar">
   <a href="#" class="sidebar-toggle" aria-label="Comuta meniul"><i class="fa-solid fa-bars"></i><span class="label">Meniu</span></a>
   <a href="#" data-section="news"><i class="fa-solid fa-newspaper"></i><span class="label">Stiri</span></a>
   <a href="#" data-section="utilizatori"><i class="fa-solid fa-users"></i><span class="label">Utilizatori</span></a>

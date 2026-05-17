@@ -4,10 +4,11 @@ using System.Web.Services;
 using System.Web.UI;
 using Newtonsoft.Json;
 using WebAdminDashboard.Classes.Database.Repositories;
+using WebAdminDashboard.Classes.Library;
 
 namespace WebAdminDashboard
 {
-    public partial class UserDetail : Page
+    public partial class UserDetail : AuthenticatedPage
     {
         protected void Page_Load(object sender, EventArgs e)
         {
