@@ -496,15 +496,15 @@
             var satClass = m.satisfaction >= 70 ? 'color:#22c55e;' : (m.satisfaction >= 40 ? 'color:#f59e0b;' : (m.satisfaction >= 0 ? 'color:#ef4444;' : 'color:#6b7280;'));
             tbody.append(
                 '<tr>' +
-                '<td><strong>' + m.model + '</strong></td>' +
-                '<td>' + m.count + '</td>' +
-                '<td>' + m.avgDuration + 's</td>' +
-                '<td>' + formatNumber(m.avgTokenInput) + '</td>' +
-                '<td>' + formatNumber(m.avgTokenOutput) + '</td>' +
-                '<td>' + formatNumber(m.totalTokens) + '</td>' +
-                '<td style="color:#22c55e;font-weight:600;">' + m.likes + '</td>' +
-                '<td style="color:#ef4444;font-weight:600;">' + m.dislikes + '</td>' +
-                '<td style="' + satClass + 'font-weight:600;">' + satText + '</td>' +
+                '<td style="text-align:left;"><strong>' + m.model + '</strong></td>' +
+                '<td style="text-align:left;">' + m.count + '</td>' +
+                '<td style="text-align:left;">' + m.avgDuration + 's</td>' +
+                '<td style="text-align:left;">' + formatNumber(m.avgTokenInput) + '</td>' +
+                '<td style="text-align:left;">' + formatNumber(m.avgTokenOutput) + '</td>' +
+                '<td style="text-align:left;">' + formatNumber(m.totalTokens) + '</td>' +
+                '<td style="text-align:left; color:#22c55e; font-weight:600;">' + m.likes + '</td>' +
+                '<td style="text-align:left; color:#ef4444; font-weight:600;">' + m.dislikes + '</td>' +
+                '<td style="text-align:left; ' + satClass + 'font-weight:600;">' + satText + '</td>' +
                 '</tr>'
             );
         });

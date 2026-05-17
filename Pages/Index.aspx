@@ -85,15 +85,15 @@
                         <table id="modelComparisonTable" class="display" style="width:100%;">
                             <thead>
                                 <tr>
-                                    <th>Model</th>
-                                    <th>Cereri</th>
-                                    <th>Durată Medie (s)</th>
-                                    <th>Tokeni Input (med)</th>
-                                    <th>Tokeni Output (med)</th>
-                                    <th>Total Tokeni</th>
-                                    <th><i class="fas fa-thumbs-up" style="color:#22c55e;"></i></th>
-                                    <th><i class="fas fa-thumbs-down" style="color:#ef4444;"></i></th>
-                                    <th>Satisfacție</th>
+                                    <th style="text-align:left;">Model</th>
+                                    <th style="text-align:left;">Cereri</th>
+                                    <th style="text-align:left;">Durată Medie (s)</th>
+                                    <th style="text-align:left;">Tokeni Input (med)</th>
+                                    <th style="text-align:left;">Tokeni Output (med)</th>
+                                    <th style="text-align:left;">Total Tokeni</th>
+                                    <th style="text-align:left;"><i class="fas fa-thumbs-up" style="color:#22c55e;"></i></th>
+                                    <th style="text-align:left;"><i class="fas fa-thumbs-down" style="color:#ef4444;"></i></th>
+                                    <th style="text-align:left;">Satisfacție</th>
                                 </tr>
                             </thead>
                             <tbody id="modelComparisonBody">
