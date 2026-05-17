@@ -193,6 +193,7 @@
     <Compile Include="Classes\DTO\ImaginiPunctDeInteres.cs" />
     <Compile Include="Classes\DTO\LogActivitate.cs" />
     <Compile Include="Classes\DTO\MesajAI.cs" />
+    <Compile Include="Classes\DTO\ModelPerformanta.cs" />
     <Compile Include="Classes\DTO\PunctDeInteres.cs" />
     <Compile Include="Classes\DTO\Recenzie.cs" />
     <Compile Include="Classes\DTO\Sugestie.cs" />

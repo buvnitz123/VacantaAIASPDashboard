@@ -66,5 +66,6 @@ namespace WebAdminDashboard.Classes.Database
         public DbSet<DestinatieFacilitate> DestinatieFacilitate { get; set; }
         public DbSet<CategorieVacanta_Destinatie> CategorieVacanta_Destinatie { get; set; }
         public DbSet<AppSettings> AppSettings { get; set; }
+        public DbSet<ModelPerformanta> ModelPerformanta { get; set; }
     }
 }

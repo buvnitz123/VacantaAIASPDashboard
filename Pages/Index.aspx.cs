@@ -888,5 +888,70 @@ namespace WebAdminDashboard
                 return JsonConvert.SerializeObject(new { success = false, message = "Eroare la generarea insight-urilor" });
             }
         }
+
+        [WebMethod]
+        public static string GetGlobalModelPerformanceStats()
+        {
+            try
+            {
+                using (var context = new AppContext())
+                {
+                    var allRecords = context.ModelPerformanta.ToList();
+
+                    if (!allRecords.Any())
+                    {
+                        return JsonConvert.SerializeObject(new { success = false, message = "Nu există date de performanță" });
+                    }
+
+                    var totalRequests = allRecords.Count;
+
+                    var rated = allRecords.Where(r => r.ApreciereUser.HasValue).ToList();
+                    var totalRated = rated.Count;
+                    var totalLikes = rated.Count(r => r.ApreciereUser == 1);
+                    var satisfactionRate = totalRated > 0 ? Math.Round((double)totalLikes / totalRated * 100, 1) : 0;
+
+                    var modelComparison = allRecords
+                        .GroupBy(r => r.NumeModel ?? "Necunoscut")
+                        .Select(g =>
+                        {
+                            var gDur = g.Where(r => r.SecundeDurate.HasValue).ToList();
+                            var gTokIn = g.Where(r => r.TokenInput.HasValue).ToList();
+                            var gTokOut = g.Where(r => r.TokenOutput.HasValue).ToList();
+                            var gRated = g.Where(r => r.ApreciereUser.HasValue).ToList();
+                            var gLikes = gRated.Count(r => r.ApreciereUser == 1);
+                            var gDislikes = gRated.Count(r => r.ApreciereUser == 0);
+                            var gTotalRated = gRated.Count;
+                            return new
+                            {
+                                model = g.Key,
+                                count = g.Count(),
+                                avgDuration = gDur.Any() ? Math.Round((double)gDur.Average(r => r.SecundeDurate.Value), 2) : 0,
+                                avgTokenInput = gTokIn.Any() ? Math.Round(gTokIn.Average(r => (double)r.TokenInput.Value), 0) : 0,
+                                avgTokenOutput = gTokOut.Any() ? Math.Round(gTokOut.Average(r => (double)r.TokenOutput.Value), 0) : 0,
+                                totalTokens = gTokIn.Sum(r => r.TokenInput.Value) + gTokOut.Sum(r => r.TokenOutput.Value),
+                                likes = gLikes,
+                                dislikes = gDislikes,
+                                satisfaction = gTotalRated > 0 ? Math.Round((double)gLikes / gTotalRated * 100, 1) : -1
+                            };
+                        })
+                        .OrderByDescending(x => x.count)
+                        .ToList();
+
+                    var stats = new
+                    {
+                        totalRequests,
+                        totalModels = modelComparison.Count,
+                        satisfactionRate,
+                        modelComparison
+                    };
+
+                    return JsonConvert.SerializeObject(new { success = true, data = stats });
+                }
+            }
+            catch (Exception ex)
+            {
+                return JsonConvert.SerializeObject(new { success = false, message = "Eroare la încărcarea statisticilor globale", error = ex.Message });
+            }
+        }
     }
 }

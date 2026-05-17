@@ -30,7 +30,8 @@
     function initializeAnalytics() {
         loadUsers();
         bindEventHandlers();
-        
+        loadGlobalModelStats();
+
         // Initialize only if we're on the home section
         if (document.querySelector('.section.home.active')) {
             setupUserAnalytics();
@@ -439,6 +440,217 @@
                 notification.remove();
             });
         }, 5000);
+    }
+
+    // Global Model Performance Stats
+    let globalCharts = {};
+
+    function loadGlobalModelStats() {
+        console.log('[GlobalStats] Starting loadGlobalModelStats...');
+        $.ajax({
+            type: "POST",
+            url: "Index.aspx/GetGlobalModelPerformanceStats",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function(response) {
+                console.log('[GlobalStats] AJAX success. Raw response:', response);
+                try {
+                    var result = JSON.parse(response.d);
+                    console.log('[GlobalStats] Parsed result:', result);
+                    if (result.success) {
+                        console.log('[GlobalStats] Data received:', result.data);
+                        displayGlobalStats(result.data);
+                    } else {
+                        console.warn('[GlobalStats] Server returned success=false:', result.message, result.error);
+                        $('#globalStatsLoading').html('<i class="fas fa-info-circle"></i> ' + (result.message || 'Nu există date.'));
+                    }
+                } catch (e) {
+                    console.error('[GlobalStats] Error parsing response:', e);
+                    console.error('[GlobalStats] response.d was:', response.d);
+                    $('#globalStatsLoading').html('<i class="fas fa-exclamation-triangle"></i> Eroare la procesarea datelor.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('[GlobalStats] AJAX error:', status, error);
+                console.error('[GlobalStats] Response text:', xhr.responseText);
+                console.error('[GlobalStats] Status code:', xhr.status);
+                $('#globalStatsLoading').html('<i class="fas fa-exclamation-triangle"></i> Eroare la încărcarea statisticilor.');
+            }
+        });
+    }
+
+    function displayGlobalStats(data) {
+        var models = data.modelComparison;
+        console.log('[GlobalStats] Displaying comparison for', models.length, 'models');
+
+        // Summary cards
+        $('#globalTotalRequests').text(data.totalRequests);
+        $('#globalTotalModels').text(data.totalModels);
+        $('#globalSatisfaction').text(data.satisfactionRate > 0 ? data.satisfactionRate + '%' : 'N/A');
+
+        // Comparison table
+        var tbody = $('#modelComparisonBody');
+        tbody.empty();
+        models.forEach(function(m) {
+            var satText = m.satisfaction >= 0 ? m.satisfaction + '%' : 'N/A';
+            var satClass = m.satisfaction >= 70 ? 'color:#22c55e;' : (m.satisfaction >= 40 ? 'color:#f59e0b;' : (m.satisfaction >= 0 ? 'color:#ef4444;' : 'color:#6b7280;'));
+            tbody.append(
+                '<tr>' +
+                '<td><strong>' + m.model + '</strong></td>' +
+                '<td>' + m.count + '</td>' +
+                '<td>' + m.avgDuration + 's</td>' +
+                '<td>' + formatNumber(m.avgTokenInput) + '</td>' +
+                '<td>' + formatNumber(m.avgTokenOutput) + '</td>' +
+                '<td>' + formatNumber(m.totalTokens) + '</td>' +
+                '<td style="color:#22c55e;font-weight:600;">' + m.likes + '</td>' +
+                '<td style="color:#ef4444;font-weight:600;">' + m.dislikes + '</td>' +
+                '<td style="' + satClass + 'font-weight:600;">' + satText + '</td>' +
+                '</tr>'
+            );
+        });
+
+        // Destroy old global charts
+        Object.keys(globalCharts).forEach(function(key) {
+            if (globalCharts[key]) { globalCharts[key].destroy(); delete globalCharts[key]; }
+        });
+
+        var modelNames = models.map(function(m) { return m.model; });
+
+        // 1. Duration comparison bar chart
+        var ctx1 = document.getElementById('globalDurationCompareChart').getContext('2d');
+        globalCharts.duration = new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: modelNames,
+                datasets: [{
+                    label: 'Durată Medie (s)',
+                    data: models.map(function(m) { return m.avgDuration; }),
+                    backgroundColor: colorPalettes.primary.slice(0, models.length),
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: models.length > 5 ? 'y' : 'x',
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true },
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // 2. Token comparison grouped bar chart (input vs output)
+        var ctx2 = document.getElementById('globalTokenCompareChart').getContext('2d');
+        globalCharts.tokens = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: modelNames,
+                datasets: [
+                    {
+                        label: 'Tokeni Input (med)',
+                        data: models.map(function(m) { return m.avgTokenInput; }),
+                        backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                        borderColor: '#3b82f6',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Tokeni Output (med)',
+                        data: models.map(function(m) { return m.avgTokenOutput; }),
+                        backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                        borderColor: '#8b5cf6',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Tokeni' } }
+                }
+            }
+        });
+
+        // 3. Model distribution doughnut
+        var ctx3 = document.getElementById('globalModelDistChart').getContext('2d');
+        globalCharts.modelDist = new Chart(ctx3, {
+            type: 'doughnut',
+            data: {
+                labels: modelNames,
+                datasets: [{
+                    data: models.map(function(m) { return m.count; }),
+                    backgroundColor: colorPalettes.primary.slice(0, models.length),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var total = models.reduce(function(s, m) { return s + m.count; }, 0);
+                                var pct = ((context.raw / total) * 100).toFixed(1);
+                                return context.label + ': ' + context.raw + ' cereri (' + pct + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // 4. Satisfaction per model bar chart
+        var modelsWithRating = models.filter(function(m) { return m.satisfaction >= 0; });
+        var ctx4 = document.getElementById('globalSatisfactionChart').getContext('2d');
+        if (modelsWithRating.length > 0) {
+            globalCharts.satisfaction = new Chart(ctx4, {
+                type: 'bar',
+                data: {
+                    labels: modelsWithRating.map(function(m) { return m.model; }),
+                    datasets: [{
+                        label: 'Satisfacție (%)',
+                        data: modelsWithRating.map(function(m) { return m.satisfaction; }),
+                        backgroundColor: modelsWithRating.map(function(m) {
+                            return m.satisfaction >= 70 ? 'rgba(34, 197, 94, 0.7)' : (m.satisfaction >= 40 ? 'rgba(245, 158, 11, 0.7)' : 'rgba(239, 68, 68, 0.7)');
+                        }),
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: '%' } }
+                    }
+                }
+            });
+        } else {
+            // No ratings yet
+            var parent = ctx4.canvas.parentElement;
+            ctx4.canvas.style.display = 'none';
+            var emptyDiv = document.createElement('div');
+            emptyDiv.className = 'chart-loading';
+            emptyDiv.innerHTML = '<i class="fas fa-star" style="font-size:2rem;color:#d1d5db;margin-bottom:8px;"></i><p style="color:#6b7280;">Nu există aprecieri încă.</p>';
+            parent.appendChild(emptyDiv);
+        }
+
+        $('#globalStatsLoading').hide();
+        $('#globalStatsContent').fadeIn();
+    }
+
+    function formatNumber(num) {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+        return num.toString();
     }
 
     // Initialize when DOM is ready

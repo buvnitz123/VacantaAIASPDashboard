@@ -33,7 +33,7 @@
     <script src="/Scripts/facilitate.js?v=15"></script>
     <script src="/Scripts/destinatie.js?v=4"></script>
     <script src="/Scripts/user-detail.js"></script>
-    <script src="/Scripts/user-analytics.js?v=2"></script>
+    <script src="/Scripts/user-analytics.js?v=4"></script>
 </head>
 <body>
 
@@ -44,7 +44,112 @@
     <div class="content">
       <div class="section home active">
         <h2>Dashboard Analytics - Preferințe Utilizatori</h2>
-        
+
+        <!-- Global AI Model Comparison -->
+        <div class="global-stats-section" style="margin-bottom: 2rem;">
+            <div class="stats-section">
+                <h3><i class="fas fa-robot"></i> Comparație Modele AI</h3>
+                <div id="globalStatsLoading" style="text-align:center; padding: 1rem; color: #6b7280;">
+                    <i class="fas fa-spinner fa-spin"></i> Se încarcă comparația modelelor...
+                </div>
+                <div id="globalStatsContent" style="display:none;">
+
+                    <!-- Summary row -->
+                    <div class="stats-cards-row">
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-server"></i></div>
+                            <div class="stat-content">
+                                <div class="stat-number" id="globalTotalRequests">0</div>
+                                <div class="stat-label">Total Cereri AI</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-cubes"></i></div>
+                            <div class="stat-content">
+                                <div class="stat-number" id="globalTotalModels">0</div>
+                                <div class="stat-label">Modele Utilizate</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon"><i class="fas fa-thumbs-up" style="color:#22c55e;"></i></div>
+                            <div class="stat-content">
+                                <div class="stat-number" id="globalSatisfaction">-</div>
+                                <div class="stat-label">Satisfacție Globală</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Comparison Table -->
+                    <div style="margin-top: 1.5rem; background: #fff; padding: 1.5rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow-x: auto;">
+                        <h4 style="margin-bottom: 1rem;"><i class="fas fa-table"></i> Tabel Comparativ per Model</h4>
+                        <table id="modelComparisonTable" class="display" style="width:100%;">
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Cereri</th>
+                                    <th>Durată Medie (s)</th>
+                                    <th>Tokeni Input (med)</th>
+                                    <th>Tokeni Output (med)</th>
+                                    <th>Total Tokeni</th>
+                                    <th><i class="fas fa-thumbs-up" style="color:#22c55e;"></i></th>
+                                    <th><i class="fas fa-thumbs-down" style="color:#ef4444;"></i></th>
+                                    <th>Satisfacție</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modelComparisonBody">
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Comparison Charts -->
+                    <div class="charts-section" style="margin-top: 1.5rem;">
+                        <div class="charts-row">
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h4><i class="fas fa-stopwatch"></i> Durată Medie per Model</h4>
+                                    <p>Comparație timp de răspuns (secunde)</p>
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="globalDurationCompareChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h4><i class="fas fa-coins"></i> Tokeni Medii per Model</h4>
+                                    <p>Input vs Output per model</p>
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="globalTokenCompareChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="charts-row">
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h4><i class="fas fa-chart-pie"></i> Distribuție Cereri per Model</h4>
+                                    <p>Cât de mult este folosit fiecare model</p>
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="globalModelDistChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <div class="chart-header">
+                                    <h4><i class="fas fa-star"></i> Satisfacție per Model</h4>
+                                    <p>Rata aprecierilor pozitive (%)</p>
+                                </div>
+                                <div class="chart-wrapper">
+                                    <canvas id="globalSatisfactionChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr style="border: 1px solid #e5e7eb; margin: 2rem 0;" />
+
         <!-- User Selector Section -->
         <div class="user-selector-section">
             <div class="selector-header">
