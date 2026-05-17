@@ -1,8 +1,7 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Index.aspx.cs" Inherits="WebAdminDashboard.Index" Async="true" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Index.aspx.cs" Inherits="WebAdminDashboard.Index" %>
 <%@ Register Src="~/Pages/Shared/Navbar.ascx" TagPrefix="uc" TagName="Navbar" %>
 <%@ Register Src="~/Pages/Shared/Sidebar.ascx" TagPrefix="uc" TagName="Sidebar" %>
 <%@ Register Src="~/Pages/Utilizatori.ascx" TagPrefix="pg" TagName="Utilizatori" %>
-<%@ Register Src="~/Pages/News.ascx" TagPrefix="pg" TagName="News" %>
 <%@ Register Src="~/Pages/CategoriiVacanta.ascx" TagPrefix="pg" TagName="CategoriiVacanta" %>
 <%@ Register Src="~/Pages/Destinatie.ascx" TagPrefix="pg" TagName="Destinatii" %>
 <%@ Register Src="~/Pages/Facilitate.ascx" TagPrefix="pg" TagName="Facilitati" %>
@@ -18,13 +17,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dashboard</title>
     <link href="/Content/styles.css?v=9" rel="stylesheet" />
-    <link href="/Content/news.css?v=2" rel="stylesheet" />
     <link href="/Content/categorie-vacanta.css?v=3" rel="stylesheet" />
     <link href="/Content/facilitate.css?v=14" rel="stylesheet" />
     <link href="/Content/destinatie.css?v=3" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
-    <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
+    <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css"/>
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
@@ -32,7 +29,6 @@
     <link href="/Content/user-analytics.css?v=1" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="/Scripts/app.js?v=8"></script>
-    <script src="/Scripts/news.js?v=5"></script>
     <script src="/Scripts/categorie-vacanta.js?v=3"></script>
     <script src="/Scripts/facilitate.js?v=15"></script>
     <script src="/Scripts/destinatie.js?v=4"></script>
@@ -184,9 +180,6 @@
             </div>
 
         </div>
-      </div>
-      <div class="section news">
-        <pg:News runat="server" ID="PgNews" />
       </div>
       <div class="section utilizatori">
         <pg:Utilizatori runat="server" ID="PgUtilizatori" />

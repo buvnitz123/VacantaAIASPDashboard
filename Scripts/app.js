@@ -1,6 +1,6 @@
 ﻿// Sidebar toggle logic
 (function () {
-    var allowedSections = ['home', 'news', 'utilizatori', 'categorii', 'destinatii', 'facilitati', 'puncte', 'sugestii'];
+    var allowedSections = ['home', 'utilizatori', 'categorii', 'destinatii', 'facilitati', 'puncte', 'sugestii'];
 
     function isAllowedSection(sectionName) {
         return allowedSections.indexOf(sectionName) !== -1;
@@ -17,9 +17,7 @@
 
             if (sectionName === 'utilizatori') {
                 initUtilizatoriTable();
-            } else if (sectionName === 'news') {
-                initNewsSection();
-            } else if (sectionName === 'categorii') {   
+            } else if (sectionName === 'categorii') {
                 initCategoriiTable();
             } else if (sectionName === 'destinatii') {
                 initDestinatiiTable();
@@ -772,16 +770,6 @@
             }
         });
         sugestiiInited = true;
-    }
-
-    var newsInited = false;
-    function initNewsSection() {
-        if (newsInited) return;
-        
-        // Trigger custom event for news page initialization
-        $(document).trigger('newsPageActive');
-        
-        newsInited = true;
     }
 
     if (document.readyState === 'loading') {

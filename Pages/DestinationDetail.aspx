@@ -12,7 +12,7 @@
     <link href="/Content/destination-detail.css?v=3" rel="stylesheet" />
     <link href="/Content/puncte-interes.css?v=1" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.js"></script>
+    <script src="https://code.jquery.com/ui/1.14.1/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.14.1/themes/base/jquery-ui.css"/>
     <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>

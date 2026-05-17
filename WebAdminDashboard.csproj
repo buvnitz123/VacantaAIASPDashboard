@@ -137,7 +137,6 @@
     <Content Include="Content\destinatie.css" />
     <Content Include="Content\destination-detail.css" />
     <Content Include="Content\facilitate.css" />
-    <Content Include="Content\news.css" />
     <Content Include="Content\puncte-interes.css" />
     <Content Include="Content\styles.css" />
     <Content Include="Content\user-analytics.css" />
@@ -145,7 +144,6 @@
     <Content Include="Pages\DestinationDetail.aspx" />
     <Content Include="Pages\Login.aspx" />
     <Content Include="Pages\Logout.aspx" />
-    <Content Include="Pages\News.ascx" />
     <Content Include="Pages\Shared\Navbar.ascx" />
     <Content Include="Pages\Shared\Sidebar.ascx" />
     <Content Include="Pages\PunctDeInteres.ascx" />
@@ -161,7 +159,6 @@
     <Content Include="Scripts\destinatie.js" />
     <Content Include="Scripts\destination-detail.js" />
     <Content Include="Scripts\facilitate.js" />
-    <Content Include="Scripts\news.js" />
     <Content Include="Scripts\user-analytics.js" />
     <Content Include="Scripts\user-detail.js" />
     <Content Include="Web.config" />
@@ -206,7 +203,6 @@
     <Compile Include="Classes\Library\EncryptionUtils.cs" />
     <Compile Include="Classes\Library\Enums\TipActivitate.cs" />
     <Compile Include="Classes\Library\Enums\TipEntitate.cs" />
-    <Compile Include="Classes\Library\NewsAPIUtils.cs" />
     <Compile Include="Classes\Library\PhotoAPIViews\PexelsPhoto.cs" />
     <Compile Include="Classes\Library\PhotoAPIViews\PexelsPhotoResponse.cs" />
     <Compile Include="Classes\Library\PhotoAPIViews\PexelsPhotoSource.cs" />
